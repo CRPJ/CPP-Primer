@@ -24,9 +24,7 @@
 
 ## 第12章 动态内存
 
-## 第13章 拷贝控制
-
-[13.13](https://github.com/CRPJ/CPP-Primer/blob/master/chapter13.md)
+## [第13章 拷贝控制](https://github.com/CRPJ/CPP-Primer/blob/master/chapter13.md)
 
 ## 第14章 重载运算和类型转换
 
