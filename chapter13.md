@@ -1,10 +1,79 @@
 # 目录
 
+[13.1](#13.1)
+
+[13.2](#13.2)
+
+[13.3](#13.3)
+
+[13.4](#13.4)
+
 [13.5](#13.5)
 
 [13.12](#13.12)
 
 [13.13](#13.13)
+
+## <span id="13.1">13.1</span>
+
+> 拷贝构造函数是什么？什么时候使用它？
+
+如果一个构造函数的第一个参数是自身类型的引用，且任何其他额外参数都有默认值，则此构造函数是拷贝构造函数。
+
+拷贝构造函数通常在发生拷贝构造的时候使用，而拷贝构造发生的条件如下：
+
+1. 使用“=”定义变量时
+2. 将一个对象作为实参传递一个非引用类型的形参
+3. 从一个返回类型为非引用类型的函数返回一个对象
+4. 用花括号列表初始化一个数组中的元素或者一个聚合类中的成员
+
+## <span id="13.2">13.2</span>
+
+> 解释为什么下面的声明时非法的：
+>
+> ```c++
+> Sales_data::Sales_data(Sales_data rhs);
+> ```
+
+拷贝构造函数的第一个参数必须是自身类型的引用。否则参数传递时需要调用拷贝构造函数将发生无限次循环调用。
+
+## <span id="13.3">13.3</span>
+
+> 当我们拷贝一个StrBlob时，会发生什么？拷贝一个StrBlobPtr呢？
+
+```c++
+void test()
+{
+    StrBlob sb1;
+    cout << "reference count of sb1 is " << sb1.count() << endl;	// 1
+    StrBlob sb2(sb1);
+    cout << "reference count of sb1 is " << sb1.count() << endl;	// 2
+
+    StrBlobPtr sbp1(sb1);
+    cout << "reference count of sbp1 is " << sbp1.count() << endl;		// 2
+    StrBlobPtr sbp2 (sbp1);
+    cout << "reference count of sbp1 is " << sbp1.count() << endl;		// 2
+}
+```
+
+拷贝StrBlob时，其shared_ptr成员的引用计数会增加。拷贝StrBlobPtr, unique_ptr成员的引用计数不变，其引用了shared_ptr的引用计数。
+
+## <span id="13.4">13.4</span>
+
+> 假定Point是一个类型，它有一个public的拷贝构造函数，指出下面程序片段中哪些地方使用了拷贝构造函数。
+>
+> ```c++
+> Point global;
+> Point foo_bar(Point arg)	// 传参时使用了拷贝构造函数1
+> {
+>     Point local = arg, *heap = new Point(global);	// 使用了拷贝构造函数2，3
+>     *heap = local;
+>     Point pa[4] = {local, *heap};	// 使用了拷贝构造函数4,5
+>     return *heap;	// 返回值时使用了拷贝构造函数6
+> }
+> ```
+
+
 
 ## <span id="13.5">13.5</span>
 
