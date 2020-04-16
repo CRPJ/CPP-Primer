@@ -19,13 +19,13 @@ C++ Primer第5版的部分习题答案
 
 ## 第8章 IO库
 
-## 第9章 顺序容器
+## [第9章 顺序容器](https://github.com/CRPJ/CPP-Primer/blob/master/chapter09.md)
 
-## 第10章 泛型算法
+## [第10章 泛型算法](https://github.com/CRPJ/CPP-Primer/blob/master/chapter10.md)
 
-## 第11章 关联容器
+## [第11章 关联容器](https://github.com/CRPJ/CPP-Primer/blob/master/chapter11.md)
 
-## 第12章 动态内存
+## [第12章 动态内存](https://github.com/CRPJ/CPP-Primer/blob/master/chapter12.md)
 
 ## [第13章 拷贝控制](https://github.com/CRPJ/CPP-Primer/blob/master/chapter13.md)
 
