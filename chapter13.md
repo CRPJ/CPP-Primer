@@ -392,7 +392,98 @@ int main()
 
 ## <span id="13.18">13.18</span>
 
+> 定义一个Employee类，它包含雇员的姓名和唯一的雇员证号。为这个类定义默认构造函数，以及接受一个表示雇员姓名的string的构造函数。每个构造函数应该通过递增一个static数据成员来生成一个唯一的证号。
+
+```c++
+#include <iostream>
+#include <string>
+
+struct Employee
+{
+    std::string name;
+    unsigned int id;
+    static unsigned basicNumber;
+    Employee() : name(std::string("null")), id(basicNumber++) {}
+    Employee(std::string name) : name(name) { id = basicNumber++; }
+};
+unsigned Employee::basicNumber = 123456;
+
+int main()
+{
+    Employee e1;
+    Employee e2("Mike");
+    Employee e3(e2);
+    Employee e4;
+    e4 = e2;
+    std::cout << e1.name << '\t' << e1.id << std::endl;
+    std::cout << e2.name << '\t' << e2.id << std::endl;
+    std::cout << e3.name << '\t' << e3.id << std::endl;
+    std::cout << e4.name << '\t' << e4.id << std::endl;
+
+    return 0;
+}
+```
+
+运行结果：
+
+```c++
+null    123456
+Mike    123457
+Mike    123457
+Mike    123457
+```
+
 ## <span id="13.19">13.19</span>
+
+Employee类需要定义自己的拷贝控制成员，因为合成的拷贝构造函数和拷贝赋值运算符会直接将雇员证号拷贝过来，不能区分员工。所以应该自定义拷贝构造函数和拷贝赋值运算符。
+
+```c++
+#include <iostream>
+#include <string>
+
+struct Employee
+{
+    std::string name;
+    unsigned int id;
+    static unsigned basicNumber;
+    Employee() : name(std::string("null")), id(basicNumber++) {}
+    Employee(std::string name) : name(name) { id = basicNumber++; }
+    Employee(const Employee& e) : name(e.name), id(basicNumber++) {}
+    Employee& operator=(const Employee& e);
+};
+unsigned Employee::basicNumber = 123456;
+
+Employee& Employee::operator=(const Employee& e)
+{
+    this->name = e.name;
+    this->id = basicNumber++;
+    return *this;
+}
+
+int main()
+{
+    Employee e1;
+    Employee e2("Mike");
+    Employee e3(e2);
+    Employee e4;
+    e4 = e2;
+    std::cout << e1.name << '\t' << e1.id << std::endl;
+    std::cout << e2.name << '\t' << e2.id << std::endl;
+    std::cout << e3.name << '\t' << e3.id << std::endl;
+    std::cout << e4.name << '\t' << e4.id << std::endl;
+
+    return 0;
+}
+```
+
+运行结果如下：
+
+```c++
+null    123456
+Mike    123457
+Mike    123458
+Mike    123460
+```
 
 ## <span id="13.20">13.20</span>
 
