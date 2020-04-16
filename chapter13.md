@@ -263,11 +263,132 @@ X(const X&)
 
 ## <span id="13.14">13.14</span>
 
+> 假定numbered是一个类，它有一个默认构造函数，能为每个对象生成一个唯一的序号，保存在名为mysn的数据成员中。假定numbered使用合成的拷贝控制成员，并给定如下函数：
+>
+> ```c++
+> void f(numbered s) { cout << s.mysn << endl; }
+> ```
+>
+> 则下面代码输出什么内容？
+>
+> numbered a, b = a, c = b;
+>
+> f(a); f(b); f(c);
+
+```c++
+#include <iostream>
+#include <cstdlib>
+
+struct numbered
+{
+    int mysn;
+    numbered() : mysn(std::rand()) {}
+};
+
+void f(numbered s)
+{
+    std::cout << s.mysn << std::endl;
+}
+
+int main()
+{
+    numbered a, b = a, c = b;
+    f(a);
+    f(b);
+    f(c);
+    return 0;
+}
+```
+
+合成拷贝构造函数直接拷贝对应的成员的值，所以a,b,c的序号相同，运行结果如下：
+
+```c++
+41
+41
+41
+```
+
 ## <span id="13.15">13.15</span>
+
+> 假定numbered定义了一个拷贝构造函数，能生成一个新的序号。这会改变上一题中调用的输出结果吗？如果会改变，为什么？新的输出结果是什么？
+
+```c++
+#include <iostream>
+#include <cstdlib>
+
+struct numbered
+{
+    int mysn;
+    numbered() : mysn(std::rand()) {}
+    numbered(const numbered& n) { mysn = std::rand(); }
+};
+
+void f(numbered s)
+{
+    std::cout << s.mysn << std::endl;
+}
+
+int main()
+{
+    numbered a, b = a, c = b;
+    f(a);
+    f(b);
+    f(c);
+    return 0;
+}
+```
+
+定义了新的拷贝构造函数能生成一个新的序号，所以在调用拷贝构造函数时每个新的对象会有独特的序号，所以函数调用时打印出的序号不同。运行结果如下：
+
+```c++
+26500
+19169
+15724
+```
 
 ## <span id="13.16">13.16</span>
 
+> 如果f中的参数时const numbered&，将会怎样？这会改变输出结果吗？如果会改变，为什么？新的输出结果是什么？
+
+```c++
+#include <iostream>
+#include <cstdlib>
+
+struct numbered
+{
+    int mysn;
+    numbered() : mysn(std::rand()) {}
+    numbered(const numbered& n) { mysn = std::rand(); }
+};
+
+void f(const numbered& s)
+{
+    std::cout << s.mysn << std::endl;
+}
+
+int main()
+{
+    numbered a, b = a, c = b;
+    f(a);
+    f(b);
+    f(c);
+    return 0;
+}
+```
+
+如果f的参数是const numbered&，那么调用函数f时不会调用拷贝构造函数，所以会改变输出结果。在上一题中f函数的参数不是引用类型，所以再进行参数传递时会发生参数的拷贝，会调用拷贝构造函数，与是引用类型的参数结果不一样。运行结果是：
+
+```c++
+41
+18467
+6334
+```
+
+
+
 ## <span id="13.17">13.17</span>
+
+见[13.4](#13.4)、[13.5](#13.5)、[13.6](#13.6)的答案。
 
 ## <span id="13.18">13.18</span>
 
