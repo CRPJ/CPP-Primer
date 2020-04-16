@@ -93,6 +93,78 @@ void test()
 > };
 > ```
 
+## <span id="13.5">13.6</span>
+
+> 拷贝赋值运算符是什么？什么时候使用它？合成拷贝赋值运算符完成什么工作？什么时候会生成合成拷贝赋值运算符？
+
+拷贝赋值运算符是重载“=”运算符，即为一个名为operator=的函数，其参数与其所在类的类型相同，返回一个指向其左侧运算对象的引用。
+
+在发生赋值操作时使用。
+
+合成拷贝赋值运算符的工作：将后侧运算对象的每歌非static成员赋予左边运算对象的对应成员。】
+
+当类未定义自己的拷贝赋值运算符时，编译器会自动生成一个合成拷贝赋值运算符。
+
+## <span id="13.7">13.7</span>
+
+> 当我们将一个StrBlob赋值给另一个StrBlob时，会发生什么？赋值StrBlobPtr呢？
+
+```c++
+void test()
+{
+    StrBlob sb1;
+    cout << "reference count of sb1 is " << sb1.count() << endl;	// 1
+    StrBlob sb2 = sb1;
+    cout << "reference count of sb1 is " << sb1.count() << endl;	// 2
+
+    StrBlobPtr sbp1(sb1);
+    cout << "reference count of sbp1 is " << sbp1.count() << endl;	// 2
+    StrBlobPtr sbp2 = sbp1;
+    cout << "reference count of sbp1 is " << sbp1.count() << endl;	// 2
+}
+// 会发生浅拷贝，所有的指针都指向同一块内存。与拷贝一样，赋值StrBlob时，shared_ptr的引用计数加1，赋值StrBlobPtr时，引用计数不变。
+```
+
+## <span id="13.8">13.8</span>
+
+>为13.1.1节练习13.5中的HasPtr类编写赋值运算符。类似拷贝构造函数，你的赋值运算符应该讲对象拷贝到ps指向的位置。
+
+```c++
+HasPtr& operator=(const HasPtr& hp)
+{
+    ps = new std::string(*hp.ps);
+    i = hp.i;
+    return *this;
+}
+```
+
+## <span id="13.9">13.9</span>
+
+> 析构函数是什么？合成析构函数完成什么工作？什么时候回生成合成析构函数？
+
+析构函数是类的一个成员，名字由波浪线接类名组成，没有返回值也没有参数。
+
+对于某些类，合成析构函数被用来阻止该类型的自动销毁。如果不是这种情况，合成析构函数的函数体就为空。
+
+当一个类没有定义自己的析构函数时，编译器会为它生成一个合成析构函数。
+
+## <span id="13.10">13.10</span>
+
+> 当一个StrBlob对象销毁时会发生什么？一个StrBlobPtr对象销毁时呢？
+
+销毁StrBlob时，分别会执行vector、shared_ptr、string的析构函数，vector析构函数会销毁我们添加到vector中的元素，shared_ptr析构函数会递减StrBlob对象的引用计数。销毁一个StrBlobPtr时，string、weak_ptr的析构函数执行，但是不会更改weak_ptr绑定的shared_ptr的引用计数，所以指向的对象不一定被销毁。
+
+## <span id="13.11">13.11</span>
+
+> 为前面练习中的HasPtr类添加一个析构函数。
+
+```c++
+~HasPtr()
+{
+    delete ps;
+}
+```
+
 ## <span id="13.12">13.12</span>
 
 >在下面的代码片段中会发生几次析构函数调用？
