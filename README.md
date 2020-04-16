@@ -31,9 +31,9 @@ C++ Primer第5版的部分习题答案
 
 ## [第14章 重载运算和类型转换](https://github.com/CRPJ/CPP-Primer/blob/master/chapter14.md)
 
-## 第15章 面向对象程序设计
+## [第15章 面向对象程序设计](https://github.com/CRPJ/CPP-Primer/blob/master/chapter15.md)
 
-## 第16章 模板和泛型编程
+## [第16章 模板和泛型编程](https://github.com/CRPJ/CPP-Primer/blob/master/chapter16.md)
 
 ## 第17章 标准库特殊设施
 
