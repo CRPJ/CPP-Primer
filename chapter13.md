@@ -4,6 +4,24 @@
 
 [13.13](#13.13)
 
+## <span id="13.5">13.5</span>
+
+> 给定下面的类框架，编写一个拷贝构造函数，拷贝所有成员。你的拷贝构造函数应该动态分配一个新的string，并将对象拷贝到ps指向的位置，而不是拷贝ps本身：
+>
+> ```c++
+> class HasPtr
+> {
+> public:
+>     HasPtr(const std::string& s = std::string()) :
+>     	ps(new std::string(s)), i(0) {}
+>     // 拷贝构造函数
+>     HasPtr(const HasPtr& hp) : ps(new std::string(*hp.ps)), i(hp.i) {}
+> private:
+>     std::string *ps;
+>     int i;
+> };
+> ```
+
 ## <span id="13.12">13.12</span>
 
 >在下面的代码片段中会发生几次析构函数调用？
