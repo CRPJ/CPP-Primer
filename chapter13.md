@@ -493,6 +493,10 @@ Mike    123460
 
 ## <span id="13.20">13.20</span>
 
+> 解释当我们拷贝、赋值或销毁TextQuery和QueryResult类对象时会发生什么？
+
+
+
 ## <span id="13.21">13.21</span>
 
 ## <span id="13.22">13.22</span>
