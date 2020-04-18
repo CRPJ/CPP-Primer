@@ -133,9 +133,278 @@ int main()
 
 ## <span id="12.29">12.29</span>
 
+更倾向于while版本，因为do while至少要执行一次循环，while版本可以随时终止循环。
+
 ## <span id="12.30">12.30</span>
 
+将所有类写在同一个文件里。
+
+```c++
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <fstream>
+#include <sstream>
+#include <memory>
+
+class QueryResult
+{
+    friend std::ostream& print(std::ostream&, const QueryResult&);
+
+public:
+    using line_no = std::vector<std::string>::size_type;
+    QueryResult(std::string s,
+                std::shared_ptr<std::set<line_no>> p,
+                std::shared_ptr<std::vector<std::string>> f) :
+                sought(s), lines(p), file(f) {}
+private:
+    std::string sought;
+    std::shared_ptr<std::set<line_no>> lines;
+    std::shared_ptr<std::vector<std::string>> file;
+};
+class TextQuery
+{
+public:
+    using line_no = std::vector<std::string>::size_type;
+    TextQuery(std::ifstream&);
+    QueryResult query(const std::string&) const;
+
+private:
+    std::shared_ptr<std::vector<std::string>> file;
+    std::map<std::string, std::shared_ptr<std::set<line_no>>> wm;
+};
+
+TextQuery::TextQuery(std::ifstream &is) : file(new std::vector<std::string>)
+{
+    std::string text;
+    while (std::getline(is, text))
+    {
+        file->push_back(text);
+        int n = file->size() - 1;
+        std::istringstream line(text);
+        std::string word;
+        while (line >> word)
+        {
+            auto &lines = wm[word];
+            if (!lines)
+            {
+                lines.reset(new std::set<line_no>);
+            }
+            lines->insert(n);
+        }
+    }
+}
+
+QueryResult
+TextQuery::query(const std::string &sought) const {
+    static std::shared_ptr<std::set<line_no>> nodata(new std::set<line_no>);
+    auto loc = wm.find(sought);
+    if (loc == wm.end())
+    {
+        return QueryResult(sought, nodata, file);
+    } else
+    {
+        return QueryResult(sought, loc->second, file);
+    }
+}
+
+std::ostream &print(std::ostream& os, const QueryResult& qr)
+{
+    os << qr.sought << " occurs " << qr.lines->size() << " times." << std::endl;
+    for (auto num : *qr.lines)
+    {
+        os << "\t(line " << num + 1 << ") " << *(qr.file->begin() + num) << std::endl;
+    }
+    return os;
+}
+
+int main()
+{
+    std::string filename = "E:\\code\\CLionProjects\\TextQuery\\test.txt";
+    std::ifstream infile(filename);
+    TextQuery source = TextQuery(infile);
+    QueryResult result = source.query("a");
+    print(std::cout, result);
+
+    return 0;
+}
+```
+
+将类和实现分开
+
+QueryResult.h
+
+```c++
+//
+// Created by wangheng on 2020/4/18.
+//
+
+#ifndef TEXTQUERY_QUERYRESULT_H
+#define TEXTQUERY_QUERYRESULT_H
+#include <iostream>
+#include <vector>
+#include <set>
+#include <string>
+#include <memory>
+
+class QueryResult {
+    friend std::ostream& print(std::ostream&, const QueryResult&);
+
+public:
+    using line_no = std::vector<std::string>::size_type;
+    QueryResult(std::string s,
+            std::shared_ptr<std::set<line_no>> p,
+            std::shared_ptr<std::vector<std::string>> f) :
+            sought(s), lines(p), file(f) {}
+private:
+    std::string sought;
+    std::shared_ptr<std::set<line_no>> lines;
+    std::shared_ptr<std::vector<std::string>> file;
+};
+
+
+#endif //TEXTQUERY_QUERYRESULT_H
+
+```
+
+QueryResult.cpp
+
+```c++
+//
+// Created by wangheng on 2020/4/18.
+//
+
+#include "QueryResult.h"
+#include "make_plural.h"
+
+std::ostream& print(std::ostream& os, const QueryResult& qr)
+{
+    os << qr.sought << " occurs " << qr.lines->size() << " " <<
+        make_plural(qr.lines->size(), "time", "s") << std::endl;
+    for (auto num : *qr.lines)
+    {
+        os << "\t(line " << num + 1 << ") " << *(qr.file->begin() + num) << std::endl;
+    }
+    return os;
+}
+```
+
+TextQuery.h
+
+```c++
+//
+// Created by wangheng on 2020/4/18.
+//
+
+#ifndef TEXTQUERY_TEXTQUERY_H
+#define TEXTQUERY_TEXTQUERY_H
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <fstream>
+#include <sstream>
+#include "QueryResult.h"
+
+class TextQuery {
+public:
+    using line_no = std::vector<std::string>::size_type;
+    TextQuery(std::ifstream&);
+    QueryResult query(const std::string&) const;
+
+private:
+    std::shared_ptr<std::vector<std::string>> file;
+    std::map<std::string, std::shared_ptr<std::set<line_no>>> wm;
+};
+
+
+#endif //TEXTQUERY_TEXTQUERY_H
+
+```
+
+TextQuery.cpp
+
+```c++
+//
+// Created by wangheng on 2020/4/18.
+//
+
+#include "TextQuery.h"
+TextQuery::TextQuery(std::ifstream &is) : file(new std::vector<std::string>) {
+    std::string text;
+    while (std::getline(is, text))
+    {
+        file->push_back(text);
+        int n = file->size() - 1;
+        std::istringstream line(text);
+        std::string word;
+        while (line >> word)
+        {
+            auto& lines = wm[word];
+            if (!lines)
+                lines.reset(new std::set<line_no>);
+            lines->insert(n);
+        }
+    }
+}
+
+QueryResult TextQuery::query(const std::string &sought) const {
+    static std::shared_ptr<std::set<line_no>> nodata(new std::set<line_no>);
+    auto loc = wm.find(sought);
+    if(loc == wm.cend())
+    {
+        return QueryResult(sought, nodata, file);
+    } else {
+        return QueryResult(sought, loc->second, file);
+    }
+}
+```
+
+make_plural.h
+
+```c++
+//
+// Created by wangheng on 2020/4/18.
+//
+
+#ifndef TEXTQUERY_MAKE_PLURAL_H
+#define TEXTQUERY_MAKE_PLURAL_H
+#include <string>
+inline
+std::string make_plural(std::size_t ctr, const std::string& word, const std::string ending)
+{
+    return (ctr == 1) ? word : word+ending;
+}
+#endif //TEXTQUERY_MAKE_PLURAL_H
+
+```
+
+main.cpp
+
+```c++
+#include <iostream>
+#include "QueryResult.h"
+#include "TextQuery.h"
+
+int main()
+{
+    std::string filename = "E:\\code\\CLionProjects\\TextQuery\\test.txt";
+    std::ifstream infile(filename);
+    TextQuery source = TextQuery(infile);
+    QueryResult result = source.query("china");
+    print(std::cout, result);
+
+    return 0;
+}
+```
+
 ## <span id="12.31">12.31</span>
+
+vector允许元素重复，所以如果一个单词在某行中重复出现多次会导致重复计算，而set不会重复计数。所以当需要重复记录单词在某行中出现的次数的时候可以选择vector，但是在本题中要求不能重复计数，所以应该使用set。
 
 ## <span id="12.32">12.32</span>
 
