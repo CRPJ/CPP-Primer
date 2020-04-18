@@ -107,15 +107,22 @@ int main()
 
         // 查询相应的单词并且输出所在行的内容
         std::string queryWord;
-        std::cout << "请输入要查询的单词：";
-        std::cin >> queryWord;
-        if(wordMapToLine.find(queryWord) != wordMapToLine.cend())
-        {
-            std::cout << queryWord << " occurs " << wordMapToLine[queryWord].size() <<
-            " times." << std::endl;
-            for (auto iter = wordMapToLine[queryWord].cbegin(); iter != wordMapToLine[queryWord].cend(); ++iter)
-            {
-                std::cout << "(line " << *iter << ") " << content[*iter-1] << std::endl;
+        while (true) {
+            std::cout << "请输入要查询的单词，退出请输入q:";
+            std::cin >> queryWord;
+            if (queryWord != "q") {
+                if (wordMapToLine.find(queryWord) != wordMapToLine.cend()) {
+                    std::cout << queryWord << " occurs " << wordMapToLine[queryWord].size() <<
+                              " times." << std::endl;
+                    for (auto iter = wordMapToLine[queryWord].cbegin();
+                         iter != wordMapToLine[queryWord].cend(); ++iter) {
+                        std::cout << "(line " << *iter << ") " << content[*iter - 1] << std::endl;
+                    }
+                } else {
+                    std::cout << "没有查到单词" << queryWord << std::endl;
+                }
+            } else {
+                break;
             }
         }
     }
