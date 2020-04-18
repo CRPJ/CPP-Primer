@@ -395,8 +395,17 @@ int main()
     std::string filename = "E:\\code\\CLionProjects\\TextQuery\\test.txt";
     std::ifstream infile(filename);
     TextQuery source = TextQuery(infile);
-    QueryResult result = source.query("china");
-    print(std::cout, result);
+    std::string sought;
+    while (true) {
+        std::cout << "请输入你要搜索的单词，或者输入'q'退出：";
+        std::cin >> sought;
+        if (sought == "q")
+            break;
+        else {
+            QueryResult result = source.query(sought);
+            print(std::cout, result);
+        }
+    }
 
     return 0;
 }
