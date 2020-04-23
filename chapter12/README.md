@@ -612,15 +612,256 @@ int main() {
 
 ## <span id="12.21">12.21</span>
 
+> 也可以这样编写`StrBlobPtr`的`deref`成员。
+>
+> ```c++
+> std::string& deref() const
+> {
+>     return (*check(curr, "dereference past end"))[curr];
+> }
+> ```
+>
+> 你认为那个版本好？为什么？
+
+原来的版本好，因为原来的版本虽然代码行数多，但是更加易懂。
+
 ## <span id="12.22">12.22</span>
+
+> 为了能让`StrBlobPtr`使用`const StrBlobPtr`，你觉得应该如何修改？定义一个名为`ConsStrBlobPtr`的类，使其能够指向`consr StrBlob`。
+
+给`ConstStrBlobPtr`类添加一个接受`const StrBlob`的构造函数，然后添加`const`版本的`cbegin`和`cend`函数即可。
+
+`ConstStrBlobPtr.h`
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#ifndef CPP_PRIMER_EX12_22_H
+#define CPP_PRIMER_EX12_22_H
+
+#include <vector>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <initializer_list>
+
+class ConstStrBlobPtr;
+
+class StrBlob {
+public:
+    friend class ConstStrBlobPtr;
+    typedef std::vector<std::string>::size_type size_type;
+    StrBlob();
+    StrBlob(std::initializer_list<std::string> il);
+    size_type size() const { return data->size(); }
+    bool empty() const { return data->empty(); }
+    // 添加和删除元素
+    void push_back(const std::string &t) { data->push_back(t); }
+    void pop_back();
+    // 元素访问
+    std::string &front();
+    std::string &front() const;
+    std::string &back();
+    std::string &back() const;
+    ConstStrBlobPtr begin();
+    ConstStrBlobPtr end();
+    ConstStrBlobPtr cbegin() const ;
+    ConstStrBlobPtr cend() const ;
+private:
+    std::shared_ptr<std::vector<std::string>> data;
+    // 如果data[i]不合法，抛出异常
+    void check(size_type i, const std::string &msg) const;
+};
+
+StrBlob::StrBlob() : data(std::make_shared<std::vector<std::string>>()) {}
+
+StrBlob::StrBlob(std::initializer_list<std::string> il) :
+        data(std::make_shared<std::vector<std::string>>(il)) {}
+
+void StrBlob::check(size_type i, const std::string &msg) const {
+    if (i >= data->size()) {
+        throw std::out_of_range(msg);
+    }
+}
+
+void StrBlob::pop_back() {
+    check(0, "pop_back on empty StrBlob");
+    data->pop_back();
+}
+
+std::string& StrBlob::front() {
+    check(0, "front on empty StrBlob");
+    return data->front();
+}
+
+std::string& StrBlob::front() const {
+    check(0, "front on empty StrBlob");
+    return data->front();
+}
+
+std::string &StrBlob::back() {
+    check(0, "back on empty StrBlob");
+    return data->back();
+}
+
+std::string &StrBlob::back() const {
+    check(0, "back on empty StrBlob");
+    return data->back();
+}
+
+class ConstStrBlobPtr {
+public:
+    using size_t = std::vector<std::string>::size_type;
+    ConstStrBlobPtr() : curr(0) {}
+    // 使用StrBlob的引用避免拷贝
+    ConstStrBlobPtr(StrBlob& a, size_t sz = 0) : wptr(a.data), curr(sz) {}
+    ConstStrBlobPtr(const StrBlob& a, size_t sz = 0) : wptr(a.data), curr(sz) {}
+    bool operator!=(const ConstStrBlobPtr& p) { return p.curr != curr; }
+    std::string &dref() const ;
+    ConstStrBlobPtr& incr();     // 递增前缀
+private:
+    // 若检查成功，check返回一个指向vector的shared_ptr
+    std::shared_ptr<std::vector<std::string>>
+    check(std::size_t, const std::string&) const;
+    // 保存一个waek_ptr，意味着底层vector可能被销毁
+    std::weak_ptr<std::vector<std::string>> wptr;
+    size_t curr;   // 在数组中当前的位置
+};
+
+std::string& ConstStrBlobPtr::dref() const {
+    auto p = check(curr, "dereference past end");
+    return (*p)[curr];
+}
+
+ConstStrBlobPtr& ConstStrBlobPtr::incr() {
+    // 如果curr已经指向容器的尾后位置，就不能递增它
+    check(curr, "increment past end of StrBlobPtr");
+    ++curr;
+    return *this;
+}
+
+std::shared_ptr<std::vector<std::string>>
+ConstStrBlobPtr::check(std::size_t i, const std::string &msg) const {
+    auto ret = wptr.lock();
+    if (!ret)
+        throw std::runtime_error("unbound StrBlobPtr");
+    if (i >= ret->size())
+        throw std::out_of_range(msg);
+    return ret;
+}
+
+ConstStrBlobPtr StrBlob::begin() {
+    return ConstStrBlobPtr(*this);
+}
+
+ConstStrBlobPtr StrBlob::end() {
+    auto ret = ConstStrBlobPtr(*this, data->size());
+    return ret;
+}
+
+ConstStrBlobPtr StrBlob::cbegin() const {
+    return ConstStrBlobPtr(*this);
+}
+
+ConstStrBlobPtr StrBlob::cend() const {
+    auto ret = ConstStrBlobPtr(*this, data->size());
+    return ret;
+}
+
+#endif //CPP_PRIMER_EX12_22_H
+
+```
+
+`ex12_22.cpp`
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#include <iostream>
+#include "ex12_22.h"
+
+int main() {
+    const StrBlob blob = {"the", "hello"};
+    ConstStrBlobPtr blobptr(blob);
+    for (auto iter = blob.cbegin(); iter != blob.cend(); iter.incr())
+        std::cout << iter.dref() << std::endl;
+
+    return 0;
+}
+```
+
+
 
 ## <span id="12.23">12.23</span>
 
+> 编写一个程序，连接两个字符串常量，将结果保存在一个动态分配的`char`数组中。重写这个程序，连接两个标准库`string`对象。
+
+连接两个字符串常量。
+
+```c++
+
+```
+
+连接两个`string`对象。
+
+```c++
+
+```
+
+
+
 ## <span id="12.24">12.24</span>
+
+> 编写一个程序，从标准输入读入一个字符串，存入一个动态分配的字符串数组中。描述你的程序如何处理变长输入。测试你的程序，输入一个超出你分配的数组长度的字符串。
+
+```c++
+
+```
+
+
 
 ## <span id="12.25">12.25</span>
 
+> 给定下面的`new`表达式，你应该如何释放`pa`？
+>
+> `int *pa = new int[10];`
+
+`delete [] pa;`
+
 ## <span id="12.26">12.26</span>
+
+> 用`allocator`重写第427页中的程序。
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#include <iostream>
+#include <memory>
+#include <string>
+
+int main() {
+    std::allocator<std::string>::size_type n = 3;
+    std::allocator<std::string> alloc;
+    auto const p = alloc.allocate(n);
+    auto q = p;
+    std::string str;
+    while (std::cin >> str && q != p + n) {
+        alloc.construct(q++, str);
+    }
+    for (auto i = 0; i < n; ++i)
+        std::cout << p[i] << std::endl;
+    alloc.deallocate(p, n);
+    return 0;
+}
+```
+
+
 
 ## <span id="12.27">12.27</span>
 
