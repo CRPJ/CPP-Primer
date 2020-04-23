@@ -299,15 +299,159 @@ int main()
 
 ## <span id="12.14">12.14</span>
 
+> 编写你自己版本的用`shared_ptr`管理`connection`的函数。
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#include <iostream>
+#include <memory>
+#include <string>
+
+struct connection
+{
+    std::string ip;
+    int port;
+    connection(std::string i, int p) : ip(i), port(p) {}
+};
+
+struct destination
+{
+    std::string ip;
+    int port;
+    destination(std::string i, int p) : ip(i), port(p) {}
+};
+
+connection connect(destination* pDest) {
+    std::shared_ptr<connection> pConn(new connection(pDest->ip, pDest->port));
+    std::cout << "creating connection(" << pConn.use_count() << ")" << std::endl;
+    return *pConn;
+}
+
+void disconnect(connection connect) {
+    std::cout << "connection close(" << connect.ip << ":" << connect.port << ")" << std::endl;
+}
+
+void end_connect(connection* pConn) {
+    disconnect(*pConn);
+}
+
+void f(destination& d) {
+    connection conn  = connect(&d);
+    std::shared_ptr<connection> p(&conn, end_connect);
+    std::cout << "connecting now(" << p.use_count() << ")" << std::endl;
+}
+
+int main() {
+    destination dest("220.181.111", 10086);
+    f(dest);
+
+    return 0;
+}
+```
+
+
+
 ## <span id="12.15">12.15</span>
+
+> 重写第一题中的程序，用`lambda`代替`end_connection`函数。
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#include <iostream>
+#include <memory>
+#include <string>
+
+struct connection
+{
+    std::string ip;
+    int port;
+    connection(std::string i, int p) : ip(i), port(p) {}
+};
+
+struct destination
+{
+    std::string ip;
+    int port;
+    destination(std::string i, int p) : ip(i), port(p) {}
+};
+
+connection connect(destination* pDest) {
+    std::shared_ptr<connection> pConn(new connection(pDest->ip, pDest->port));
+    std::cout << "creating connection(" << pConn.use_count() << ")" << std::endl;
+    return *pConn;
+}
+
+void disconnect(connection connect) {
+    std::cout << "connection close(" << connect.ip << ":" << connect.port << ")" << std::endl;
+}
+
+void f(destination& d) {
+    connection conn  = connect(&d);
+    std::shared_ptr<connection> p(&conn, [] (connection* Pconn) {disconnect(*Pconn);});
+    std::cout << "connecting now(" << p.use_count() << ")" << std::endl;
+}
+
+int main() {
+    destination dest("220.181.111", 10086);
+    f(dest);
+
+    return 0;
+}
+```
+
+
 
 ## <span id="12.16">12.16</span>
 
+> 如果你试图拷贝或赋值`unique_ptr`，编译器并不总是能给出易于理解的错误信息。编写包含这种错误的程序，观察编译器如何诊断这种错误。
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#include <iostream>
+#include <memory>
+
+int main() {
+    std::unique_ptr<int> up(new int(3));
+    auto uq = up;
+    return 0;
+}
+```
+
+`unique_ptr(const unique_ptr&) = delete`可以看到`unique_ptr`的拷贝构造函数是删除的，所以不能拷贝或者赋值`unique_ptr`。
+
 ## <span id="12.17">12.17</span>
+
+> 下面的`unique_ptr`声明中，哪些是合法的，哪些可能导致后续的程序错误？解释每个错误的问题在哪里。
+>
+> ```c++
+> int ix = 1024, *pi = &ix, *pi2 = new int(2048);
+> typedef unique_ptr<int> IntP;
+> (a)IntP p0(ix);		// 无法将int转换为指针
+> (b)IntP p1(pi);		// 合法，但是用普通指针初始化p1，当p1毁时会释放内存，pi变成一个空悬指针
+> (c)IntP p2(pi2);	// 合法，也可能使pi2变成空悬指针
+> (d)IntP p3(&ix);	// 不合法，当p3被销毁时，它试图释放一个栈空间的对象。
+> (e)Intp p4(new int(2048));	// 合法
+> (f)IntP p5(p2.get());	// 但是会造成两个unique_ptr指向相同的地址，其中一个销毁，另一个变成空悬指针
+> ```
 
 ## <span id="12.18">12.18</span>
 
+> `shared_ptr`为什么没有`release`成员？
+
+`release`成员的作用是放弃控制权并返回指针，因为在某一时刻只能有一个`unique_ptr`指向某个对象，`unique_ptr`不能被赋值，所以要用`release`成员将一个`unique_ptr`指针的所有权传递给另一个`unique_ptr`。而`shared_ptr`允许有多个`shared_ptr`指向同一个对象，因此不需要`release`成员。
+
 ## <span id="12.19">12.19</span>
+
+> 
 
 ## <span id="12.20">12.20</span>
 
