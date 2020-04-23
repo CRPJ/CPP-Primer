@@ -803,13 +803,46 @@ int main() {
 连接两个字符串常量。
 
 ```c++
+//
+// Created by wangheng on 2020/4/23.
+//
 
+#include <iostream>
+#include <cstring>
+
+int main() {
+    const char *c1 = "hello";
+    const char *c2 = "world";
+    auto len = std::strlen(c1) + std::strlen(c2) + 1;
+    auto p = new char[len]();
+    std::strncat(p, c1, std::strlen(c1));
+    std::strncat(p, c2, std::strlen(c2));
+    std::cout << p << std::endl;
+
+    return 0;
+}
 ```
 
 连接两个`string`对象。
 
 ```c++
+//
+// Created by wangheng on 2020/4/24.
+//
 
+#include <iostream>
+#include <string>
+#include <cstring>
+
+int main() {
+    std::string s1("hello");
+    std::string s2("world");
+    char *p = new char[s1.size()+s2.size()]();
+    std::strcat(p, (s1+s2).c_str());
+    std::cout << p << std::endl;
+
+    return 0;
+}
 ```
 
 
