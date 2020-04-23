@@ -584,6 +584,32 @@ StrBlobPtr StrBlob::end() {
 
 ## <span id="12.20">12.20</span>
 
+> 编写程序，逐行读入一个输入文件，将内容存入一个`StrBlob`中，用一个`StrBlobPtr`打印出`StrBlob`中的每个元素。
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#include "ex12_19.h"
+#include <iostream>
+
+int main() {
+    StrBlob blob;
+    std::string str;
+    while (std::cin >> str) {
+        if (str == "q")
+            break;
+        blob.push_back(str);
+    }
+    for (StrBlobPtr sp = blob.begin(); sp != blob.end(); sp.incr()) {
+        std::cout << sp.dref() << std::endl;
+    }
+
+    return 0;
+}
+```
+
 ## <span id="12.21">12.21</span>
 
 ## <span id="12.22">12.22</span>
