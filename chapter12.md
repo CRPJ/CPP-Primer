@@ -117,11 +117,27 @@ std::string &StrBlob::back() const {
 
 ## <span id="12.02">12.02</span>
 
+> 编写你自己的`StrBlob`类，包含`const`版本的`front`和`back`。
+
+见上一题
+
 ## <span id="12.03">12.03</span>
+
+> `StrBlob`需要`const`版本的`push_back`和`pop_back`吗？如果需要，添加进去，否则，解释为什么不需要。
+
+不需要，`const`成员函数只能是`const`对象调用，但是`const`对象不允许更改，所以不需要`push_back`和`pop_back`。
 
 ## <span id="12.04">12.04</span>
 
+> 在我们的check函数中，没有检查i是否大于0。为什么可以忽略这个检查？
+
+因为`check`是私有成员函数，只能被`StrBlob`的成员函数调用，不能被用户程序调用，我们可以很容易地保证传给`i`的值符合要求，不必进行检查。
+
 ## <span id="12.05">12.05</span>
+
+> 我们未编写接受一个`initializer_list explicit`参数的构造函数。讨论这个设计策略的优点和缺点。
+
+未编写接受一个`initializer_list`参数的显示构造函数，意味着可以进行列表项`StrBlob`的隐式转换。在需要`StrBlob`的地方可以用列表代替，使程序编写更加方便，但是列表中可能并非都是合法的值。
 
 ## <span id="12.06">12.06</span>
 
