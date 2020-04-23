@@ -10,6 +10,111 @@
 
 ## <span id="12.01">12.01</span>
 
+> 在此代码的结尾，`b1`和`b2`各包含多少个元素？
+>
+> ```c++
+> Strblob b1;
+> {
+>     StrBlob b2 = {"a", "an", "the"};
+>     b1 = b2;
+>     b2.push_back("about");
+> }
+> ```
+
+在代码的结尾`b2`被销毁，`b1`有四个元素。
+
+`StrBlob`类的声明和实现：
+
+`StrBlob.h`
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#ifndef CPP_PRIMER_EX12_01_H
+#define CPP_PRIMER_EX12_01_H
+
+#include <memory>
+#include <vector>
+#include <initializer_list>
+#include <string>
+
+class StrBlob
+{
+public:
+    typedef std::vector<std::string>::size_type size_type;
+    StrBlob();
+    StrBlob(std::initializer_list<std::string> il);
+    size_type size() const { return data->size(); }
+    bool empty() const { return data->empty(); }
+    // 添加和删除元素
+    void push_back(const std::string &t) { data->push_back(t); }
+    void pop_back();
+    // 元素访问
+    std::string &front();
+    std::string &front() const;
+    std::string &back();
+    std::string &back() const;
+private:
+    std::shared_ptr<std::vector<std::string>> data;
+    // 如果data[i]不合法，抛出异常
+    void check(size_type i, const std::string &msg) const;
+};
+
+#endif //CPP_PRIMER_EX12_01_H
+
+```
+
+`StrBlob.cpp`
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#include "ex12_01.h"
+#include <stdexcept>
+
+StrBlob::StrBlob() : data(std::make_shared<std::vector<std::string>>()) {}
+
+StrBlob::StrBlob(std::initializer_list<std::string> il) :
+        data(std::make_shared<std::vector<std::string>>(il)) {}
+
+void StrBlob::check(size_type i, const std::string &msg) const {
+    if (i >= data->size()) {
+        throw std::out_of_range(msg);
+    }
+}
+
+void StrBlob::pop_back() {
+    check(0, "pop_back on empty StrBlob");
+    data->pop_back();
+}
+
+std::string& StrBlob::front() {
+    check(0, "front on empty StrBlob");
+    return data->front();
+}
+
+std::string& StrBlob::front() const {
+    check(0, "front on empty StrBlob");
+    return data->front();
+}
+
+std::string &StrBlob::back() {
+    check(0, "back on empty StrBlob");
+    return data->back();
+}
+
+std::string &StrBlob::back() const {
+    check(0, "back on empty StrBlob");
+    return data->back();
+}
+```
+
+
+
 ## <span id="12.02">12.02</span>
 
 ## <span id="12.03">12.03</span>

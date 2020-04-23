@@ -495,19 +495,70 @@ Mike    123460
 
 > 解释当我们拷贝、赋值或销毁TextQuery和QueryResult类对象时会发生什么？
 
-
+拷贝时成员被复制，赋值时成员也相应被复制，销毁时对象的成员也被销毁。
 
 ## 13.21
 
+> 你认为TextQuery和QueryResult类需要定义它们自己版本的拷贝控制成员吗？如果需要，为什么？如果不需要，为什么？实现你认为这两个类需要的拷贝控制操作。
+
+不需要定义它们自己版本的拷贝控制成员，因为默认的合成拷贝控制成员足够完成满足所有的需求。
+
 ## 13.22
+
+> 假定我们希望HasPtr的行为像一个值。即，对于对象所指向的string成员，每个对象都有一份自己的拷贝。我们将在下一节介绍拷贝控制成员的定义。但是，你已经学习了定义这些成员所需要的所有知识。在继续学习下一节之前，为HasPtr编写拷贝构造函数和拷贝赋值运算符。
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#ifndef CPP_PRIMER_EX13_22_H
+#define CPP_PRIMER_EX13_22_H
+
+#include <string>
+class HasPtr
+{
+public:
+    HasPtr(const std::string &s = std::string()) : ps(new std::string(s)), i(0) {}
+    HasPtr(const HasPtr& hp) : ps(new std::string(*hp.ps)), i(hp.i) {}
+    HasPtr& operator=(const HasPtr& hp) {
+        auto newp = new std::string(*hp.ps);
+        delete ps;  // ps在指向新的地址前要先销毁原来指向的内存，否则原来指向的内存将无法找到，内存泄漏
+        ps = newp;
+        i = hp.i;
+        return *this;
+    }
+    ~HasPtr() {
+        delete ps;
+    }
+private:
+    std::string *ps;
+    int i;
+};
+
+#endif //CPP_PRIMER_EX13_22_H
+
+```
 
 ## 13.23
 
+> 比较上一节联系中你编写的拷贝控制成员和这一节中的代码。确定你理解了你的代码和我们的代码之间的差异(如果有的话)。
+
 ## 13.24
+
+> 如果本节中的`HasPtr`版本未定义析构函数，将会发生什么？如果未定义拷贝构造函数，将会发生什么？
+
+如果没有定义析构函数，那么对象在析构时它的`ps`成员无法销毁，内存没法释放，造成内存泄漏。如果未定义拷贝构造函数，对象的副本和原来的对象的`ps`成员指向同一块内存，改变副本或者原对象任意一个的`ps`指向地址的值，都会改变另外一个对象的`ps`指向地址的值，即两者共享同一块底层数据。
 
 ## 13.25
 
+> 假定希望定义`StrBlob`的类值版本，而且希望继续使用`shared_ptr`，这样我们的`StrBlob`类就仍能使用指向`vector`的`weak_ptr`了。你修改后的类将需要一个拷贝构造函数和一个拷贝赋值运算符，但不需要析构函数。解释拷贝构造函数和拷贝赋值运算符必须要做什么。解释为什么不需要析构函数。
+
+
+
 ## 13.26
+
+> 对上一题中描述的`StrBlob`类，编写你自己的版本。
 
 ## 13.27
 
