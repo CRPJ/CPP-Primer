@@ -451,7 +451,136 @@ int main() {
 
 ## <span id="12.19">12.19</span>
 
-> 
+> 定义你自己版本的`StrBlobPtr`，更新`StrBlob`类，加入恰当的`friend`声明及`begin`和`end`成员。
+
+```c++
+//
+// Created by wangheng on 2020/4/23.
+//
+
+#ifndef CPP_PRIMER_EX12_19_H
+#define CPP_PRIMER_EX12_19_H
+
+#include <vector>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <initializer_list>
+
+class StrBlobPtr;
+
+class StrBlob {
+public:
+    friend class StrBlobPtr;
+    typedef std::vector<std::string>::size_type size_type;
+    StrBlob();
+    StrBlob(std::initializer_list<std::string> il);
+    size_type size() const { return data->size(); }
+    bool empty() const { return data->empty(); }
+    // 添加和删除元素
+    void push_back(const std::string &t) { data->push_back(t); }
+    void pop_back();
+    // 元素访问
+    std::string &front();
+    std::string &front() const;
+    std::string &back();
+    std::string &back() const;
+    StrBlobPtr begin();
+    StrBlobPtr end();
+private:
+    std::shared_ptr<std::vector<std::string>> data;
+    // 如果data[i]不合法，抛出异常
+    void check(size_type i, const std::string &msg) const;
+};
+
+StrBlob::StrBlob() : data(std::make_shared<std::vector<std::string>>()) {}
+
+StrBlob::StrBlob(std::initializer_list<std::string> il) :
+        data(std::make_shared<std::vector<std::string>>(il)) {}
+
+void StrBlob::check(size_type i, const std::string &msg) const {
+    if (i >= data->size()) {
+        throw std::out_of_range(msg);
+    }
+}
+
+void StrBlob::pop_back() {
+    check(0, "pop_back on empty StrBlob");
+    data->pop_back();
+}
+
+std::string& StrBlob::front() {
+    check(0, "front on empty StrBlob");
+    return data->front();
+}
+
+std::string& StrBlob::front() const {
+    check(0, "front on empty StrBlob");
+    return data->front();
+}
+
+std::string &StrBlob::back() {
+    check(0, "back on empty StrBlob");
+    return data->back();
+}
+
+std::string &StrBlob::back() const {
+    check(0, "back on empty StrBlob");
+    return data->back();
+}
+
+class StrBlobPtr {
+public:
+    using size_t = std::vector<std::string>::size_type;
+    StrBlobPtr() : curr(0) {}
+    // 使用StrBlob的引用避免拷贝
+    StrBlobPtr(StrBlob& a, size_t sz = 0) : wptr(a.data), curr(sz) {}
+    std::string &dref() const ;
+    StrBlobPtr& incr();     // 递增前缀
+private:
+    // 若检查成功，check返回一个指向vector的shared_ptr
+    std::shared_ptr<std::vector<std::string>>
+        check(std::size_t, const std::string&) const;
+    // 保存一个waek_ptr，意味着底层vector可能被销毁
+    std::weak_ptr<std::vector<std::string>> wptr;
+    size_t curr;   // 在数组中当前的位置
+};
+
+std::string& StrBlobPtr::dref() const {
+    auto p = check(curr, "dereference past end");
+    return (*p)[curr];
+}
+
+StrBlobPtr& StrBlobPtr::incr() {
+    // 如果curr已经指向容器的尾后位置，就不能递增它
+    check(curr, "increment past end of StrBlobPtr");
+    ++curr;
+    return *this;
+}
+
+std::shared_ptr<std::vector<std::string>>
+StrBlobPtr::check(std::size_t i, const std::string &msg) const {
+    auto ret = wptr.lock();
+    if (!ret)
+        throw std::runtime_error("unbound StrBlobPtr");
+    if (i >= ret->size())
+        throw std::out_of_range(msg);
+    return ret;
+}
+
+StrBlobPtr StrBlob::begin() {
+    return StrBlobPtr(*this);
+}
+
+StrBlobPtr StrBlob::end() {
+    auto ret = StrBlobPtr(*this, data->size());
+    return ret;
+}
+
+#endif //CPP_PRIMER_EX12_19_H
+```
+
+
 
 ## <span id="12.20">12.20</span>
 
