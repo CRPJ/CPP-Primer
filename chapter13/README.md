@@ -37,7 +37,7 @@
 
 ## 13.3
 
-> 当我们拷贝一个StrBlob时，会发生什么？拷贝一个StrBlobPtr呢？
+> 当我们拷贝一个`StrBlob`时，会发生什么？拷贝一个`StrBlobPtr`呢？
 
 ```c++
 void test()
@@ -54,7 +54,7 @@ void test()
 }
 ```
 
-拷贝StrBlob时，其shared_ptr成员的引用计数会增加。拷贝StrBlobPtr, unique_ptr成员的引用计数不变，其引用了shared_ptr的引用计数。
+拷贝`StrBlob`时，其`shared_ptr`成员的引用计数会增加。拷贝`StrBlobPtr`, 引用计数不变，`StrBlobPtr`用的是`weak_ptr`绑定`StrBlob`的`shared_ptr`不会增加引用计数。
 
 ## 13.4
 
@@ -81,13 +81,13 @@ void test()
 > class HasPtr
 > {
 > public:
->     HasPtr(const std::string& s = std::string()) :
+>    HasPtr(const std::string& s = std::string()) :
 >     	ps(new std::string(s)), i(0) {}
->     // 拷贝构造函数
->     HasPtr(const HasPtr& hp) : ps(new std::string(*hp.ps)), i(hp.i) {}
+>     	// 拷贝构造函数
+>     	HasPtr(const HasPtr& hp) : ps(new std::string(*hp.ps)), i(hp.i) {}
 > private:
->     std::string *ps;
->     int i;
+>     	std::string *ps;
+>     	int i;
 > };
 > ```
 
