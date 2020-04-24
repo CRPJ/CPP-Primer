@@ -639,6 +639,53 @@ StrBlob::operator=(const StrBlob&)
 > 定义你自己的使用引用计数版本的`HasPtr`。
 
 ```c++
+//
+// Created by wangheng on 2020/4/24.
+//
+
+#ifndef CPP_PRIMER_EX13_27_H
+#define CPP_PRIMER_EX13_27_H
+
+#include <string>
+
+class HasPtr {
+public:
+    // 构造函数分配新的string和新的计数器，将计数器置为1
+    HasPtr(const std::string& s = std::string()) :
+        ps(new std::string(s)), i(0), use(new std::size_t(1)) {}
+    // 拷贝构造函数拷贝所有三个数据成员，并递增计数器
+    HasPtr(const HasPtr& p) :
+        ps(p.ps), i(p.i), use(p.use) { ++*use; }
+    HasPtr& operator=(const HasPtr&);
+    ~HasPtr();
+
+private:
+    std::string *ps;
+    int i;
+    std::size_t *use;   // 用来记录有多少个对象共享*ps的成员
+};
+
+HasPtr& HasPtr::operator=(const HasPtr &rhs) {
+    ++*rhs.use;     // 递增右侧运算符对象的引用计数
+    if (--*use == 0) {  // 然后递减本对象的引用计数
+        delete ps;      // 如果没有其它用户
+        delete use;     // 释放本对象分配的成员
+    }
+    ps = rhs.ps;        // 将数据从rhs拷贝到本对象
+    i = rhs.i;
+    use = rhs.use;
+
+    return *this;   // 返回本对象
+}
+
+HasPtr::~HasPtr() {
+    if (--*use == 0) {  // 如果引用计数变为0
+        delete ps;      // 释放string内存
+        delete use;     // 释放计数器内存
+    }
+}
+
+#endif //CPP_PRIMER_EX13_27_H
 
 ```
 
@@ -664,6 +711,75 @@ StrBlob::operator=(const StrBlob&)
 > ```
 
 ```c++
+//
+// Created by wangheng on 2020/4/24.
+//
+
+#ifndef CPP_PRIMER_EX13_28_H
+#define CPP_PRIMER_EX13_28_H
+
+#include <string>
+
+class TreeNode {
+private:
+    std::string value;
+    int *count;
+    TreeNode *left;
+    TreeNode *right;
+public:
+    TreeNode() : value(std::string()), count(new int(1)), left(nullptr), right(nullptr) {}
+    TreeNode(const TreeNode& tn) :
+        value(tn.value), count(tn.count), left(tn.left), right(tn.right){ ++*tn.count; }
+    TreeNode& operator=(const TreeNode&);
+    ~TreeNode();
+};
+
+TreeNode& TreeNode::operator=(const TreeNode &rhs) {
+    ++*rhs.count;
+    if (--*count == 0) {
+        delete left;
+        delete right;
+        delete count;
+    }
+    left = rhs.left;
+    right = rhs.right;
+    count = rhs.count;
+    value = rhs.value;
+
+    return *this;
+}
+
+TreeNode::~TreeNode() {
+    if (--*count == 0) {
+        delete left;
+        delete right;
+        delete count;
+    }
+}
+
+class BinStrTree {
+private:
+    TreeNode *root;
+public:
+    BinStrTree() : root(new TreeNode()) {}
+    BinStrTree(const BinStrTree& bst) :
+        root(new TreeNode(*bst.root)) {}
+    BinStrTree& operator=(const BinStrTree&);
+    ~BinStrTree();
+};
+
+BinStrTree& BinStrTree::operator=(const BinStrTree &rhs) {
+    TreeNode* new_root = new TreeNode(*rhs.root);
+    delete root;
+    root = new_root;
+    return *this;
+}
+
+BinStrTree::~BinStrTree() {
+    delete root;
+}
+
+#endif //CPP_PRIMER_EX13_28_H
 
 ```
 
@@ -673,25 +789,136 @@ StrBlob::operator=(const StrBlob&)
 
 > 解释`swap(HasPtr&, HasPtr&)`中对`swap`的调用不会导致递归循环。
 
-
+`swap(HasPtr&, HasPtr&)`中涉及的`swap`函数本质上是三个不同的函数，所以不会发生递归循环。这三个函数类似于函数的重载。
 
 ## 13.30
 
 > 为你的类值版本`HasPtr`编写`swap`函数，并测试它。为你的`swap`函数添加一个打印语句，指出函数什么时候执行。
 
+```c++
+//
+// Created by wangheng on 2020/4/24.
+//
 
+#include <iostream>
+#include <string>
+
+class HasPtr
+{
+public:
+    friend void swap(HasPtr&, HasPtr&);
+    HasPtr(const std::string &s = std::string()) : ps(new std::string(s)), i(0) {}
+    HasPtr(const HasPtr& hp) : ps(new std::string(*hp.ps)), i(hp.i) {}
+    HasPtr& operator=(HasPtr rhs) {
+        swap(*this, rhs);
+        return *this;
+    }
+    ~HasPtr() {
+        delete ps;
+    }
+private:
+    std::string *ps;
+    int i;
+};
+
+void swap(HasPtr& lhs, HasPtr& rhs) {
+    using std::swap;
+    swap(lhs.ps, rhs.ps);
+    swap(lhs.i, lhs.i);
+    std::cout << "execute swap()" << std::endl;
+}
+
+int main() {
+    HasPtr hp1;
+    HasPtr hp2(hp1);
+    HasPtr hp3;
+    hp3 = hp1;  // 拷贝赋值运算符调用swap()函数
+    swap(hp1, hp3); // 调用swap()函数
+
+    return 0;
+}
+```
+
+拷贝赋值运算符中使用了`swap()`函数，所以使用拷贝赋值运算符时会调用`swap()`函数，或者直接使用`swap()`函数。
 
 ## 13.31
 
 > 为你的`HasPtr`类定义一个`<`运算符，并定义一个`HasPtr`的`vector`。为这个`vector`添加一些元素，并对它执行`sort`。注意何时会调用`swap`。
 
+```c++
+//
+// Created by wangheng on 2020/4/24.
+//
 
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+class HasPtr
+{
+public:
+    friend void swap(HasPtr&, HasPtr&);
+    friend bool operator<(const HasPtr& lhs, const HasPtr& rhs);
+    HasPtr(const std::string &s = std::string()) : ps(new std::string(s)), i(0) {}
+    HasPtr(const HasPtr& hp) : ps(new std::string(*hp.ps)), i(hp.i) {}
+    HasPtr& operator=(HasPtr rhs) {
+        swap(*this, rhs);
+        return *this;
+    }
+    void show() const {
+        std::cout << *ps << std::endl;
+    }
+    ~HasPtr() {
+        delete ps;
+    }
+private:
+    std::string *ps;
+    int i;
+};
+
+void swap(HasPtr& lhs, HasPtr& rhs) {
+    using std::swap;
+    swap(lhs.ps, rhs.ps);
+    swap(lhs.i, lhs.i);
+    std::cout << "execute swap()" << std::endl;
+}
+
+bool operator<(const HasPtr& lhs, const HasPtr& rhs) {
+    return *lhs.ps < *rhs.ps;
+}
+
+int main() {
+    std::vector<HasPtr> vHp{HasPtr("zoom"), HasPtr("hello"), HasPtr("good")};
+    std::sort(vHp.begin(), vHp.end());
+    for (auto& iter : vHp) {
+        iter.show();
+    }
+
+    return 0;
+}
+```
+
+执行结果：
+
+```c++
+execute swap()
+execute swap()
+execute swap()
+execute swap()
+execute swap()
+good
+hello
+zoom
+```
+
+在执行`sort()`函数时会调用`swap()`函数。
 
 ## 13.32
 
 > 类指针的`HasPtr`版本会从`swap`函数受益吗？如果会，得到了什么益处？如果不是，为什么？
 
-
+类指针的`HasPtr`不会从`swap`受益。类值版本的`HasPtr`利用`swap`交换指针进行内存分配，优化了程序，因此性能上得到了提升。但是类指针的`HasPtr`本来就不需要进行内存分配，所以不会得到性能上的提升。
 
 ## 13.33
 
