@@ -852,7 +852,26 @@ int main() {
 > 编写一个程序，从标准输入读入一个字符串，存入一个动态分配的字符串数组中。描述你的程序如何处理变长输入。测试你的程序，输入一个超出你分配的数组长度的字符串。
 
 ```c++
+//
+// Created by wangheng on 2020/4/24.
+//
 
+#include <iostream>
+
+int main() {
+    std::cout << "How long do you want the string? ";
+    std::size_t size{0};
+    std::cin >> size;
+    char *p = new char[size+1]();
+    std::cin.ignore();
+    std::cout << "input the string: ";
+    std::cin.get(p, size + 1);  // 指定读入的字符数
+    std::cout << p << std::endl;
+
+    delete [] p;
+
+    return 0;
+}
 ```
 
 
@@ -969,9 +988,13 @@ int main()
 
 ## <span id="12.29">12.29</span>
 
+> 我们曾经用`do while`循环来编写管理用户交互的循环（参见5.4.4节，第169页）。用`do while`重写本节程序，解释你倾向于那种版本，为什么。
+
 更倾向于while版本，因为do while至少要执行一次循环，while版本可以随时终止循环。
 
 ## <span id="12.30">12.30</span>
+
+> 定义你自己版本的`TextQuery`和`QueryResult`类，并执行12.3.1节（第431页）中的`runQueries`函数。
 
 将所有类写在同一个文件里。
 
@@ -1249,8 +1272,144 @@ int main()
 
 ## <span id="12.31">12.31</span>
 
+> 如果用`vector`代替`set`保存行号，会有什么差别？那种方法更好？为什么？
+
 vector允许元素重复，所以如果一个单词在某行中重复出现多次会导致重复计算，而set不会重复计数。所以当需要重复记录单词在某行中出现的次数的时候可以选择vector，但是在本题中要求不能重复计数，所以应该使用set。
 
 ## <span id="12.32">12.32</span>
 
+> 重写`TextQuery`和`QueryResult`类，用`StrBlob`代替`vector<string>`保存文件。
+
+`ex12_32.h`
+
+```c++
+//
+// Created by wangheng on 2020/4/24.
+//
+
+#ifndef CPP_PRIMER_EX12_32_H
+#define CPP_PRIMER_EX12_32_H
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <fstream>
+#include <sstream>
+#include <memory>
+#include "make_plural.h"
+#include "ex12_22.h"
+
+class QueryResult
+{
+    friend std::ostream& print(std::ostream&, const QueryResult&);
+
+public:
+    using line_no = std::vector<std::string>::size_type;
+    QueryResult(std::string s,
+                std::shared_ptr<std::set<line_no>> p,
+                StrBlob f) :
+            sought(s), lines(p), file(f) {}
+private:
+    std::string sought;
+    std::shared_ptr<std::set<line_no>> lines;
+    StrBlob file;
+};
+class TextQuery
+{
+public:
+    using line_no = std::vector<std::string>::size_type;
+    TextQuery(std::ifstream&);
+    QueryResult query(const std::string&) const;
+
+private:
+    StrBlob file;
+    std::map<std::string, std::shared_ptr<std::set<line_no>>> wm;
+};
+
+TextQuery::TextQuery(std::ifstream &is) : file(StrBlob())
+{
+    std::string text;
+    while (std::getline(is, text))
+    {
+        file.push_back(text);
+        int n = file.size() - 1;
+        std::istringstream line(text);
+        std::string word;
+        while (line >> word)
+        {
+            auto &lines = wm[word];
+            if (!lines)
+            {
+                lines.reset(new std::set<line_no>);
+            }
+            lines->insert(n);
+        }
+    }
+}
+
+QueryResult
+TextQuery::query(const std::string &sought) const {
+    static std::shared_ptr<std::set<line_no>> nodata(new std::set<line_no>);
+    auto loc = wm.find(sought);
+    if (loc == wm.end())
+    {
+        return QueryResult(sought, nodata, file);
+    } else
+    {
+        return QueryResult(sought, loc->second, file);
+    }
+}
+
+std::ostream &print(std::ostream& os, const QueryResult& qr)
+{
+    os << qr.sought << " occurs " << qr.lines->size() << " " <<
+       make_plural(qr.lines->size(), "time", "s") << std::endl;
+
+    for (auto num : *qr.lines) {
+        os << "\t(line " << num + 1 << ") " << ConstStrBlobPtr(qr.file, num).dref() << std::endl;
+    }
+    return os;
+}
+
+#endif //CPP_PRIMER_EX12_32_H
+
+```
+
+`ex12_32.cpp`
+
+```c++
+//
+// Created by wangheng on 2020/4/24.
+//
+
+#include <iostream>
+#include "ex12_32.h"
+
+int main()
+{
+    std::string filename = "E:\\code\\CLionProjects\\CPP_Primer\\data\\test.txt";
+    std::ifstream infile(filename);
+    TextQuery source = TextQuery(infile);
+    std::string sought;
+    while (true) {
+        std::cout << "请输入你要搜索的单词，或者输入'q'退出：";
+        std::cin >> sought;
+        if (sought == "q")
+            break;
+        else {
+            QueryResult result = source.query(sought);
+            print(std::cout, result);
+        }
+    }
+
+    return 0;
+}
+```
+
+
+
 ## <span id="12.33">12.33</span>
+
+> 在第15章我们将扩展查询系统，在`QueryResult`类中将会需要一些额外的成员。添加名为`begin`和`end`的成员，返回一个迭代器，指向一个给定查询返回的行号的`set`中的位置。再添加一个名为`get_file`的成员，返回一个`shared_ptr`，指向`QueryResult`对象中的文件。
