@@ -1857,6 +1857,108 @@ int main() {
 
 > 编写标准库`string`类的简化版本，命名为`String`。你的类应该至少有一个默认构造函数和一个接受`C`风格字符串指针参数的构造函数。使用`allocator`为你的`String`类分配所需内存。
 
+`String.h`
+
+```c++
+//
+// Created by wangheng on 2020/4/26.
+//
+
+#ifndef CPP_PRIMER_EX13_44_H
+#define CPP_PRIMER_EX13_44_H
+
+#include <memory>
+#include <cstring>
+#include <algorithm>
+
+class String {
+public:
+    String() : elements(nullptr), cap(nullptr) {}
+    String(const char*);
+    String(const String&);
+    ~String();
+    char operator[](std::size_t) const ;
+    char front() const { return *elements; }
+    char back() const { return *(cap - 1);}
+    const char *c_str();
+    std::size_t size() const { return cap - elements; }
+    char *begin() const { return elements; }
+    char *end() const { return cap; }
+
+private:
+    static std::allocator<char> alloc;
+    std::pair<char*, char*> alloc_n_copy(const char*, const char*);
+    void free();
+    char *elements;
+    char *cap;
+};
+
+std::allocator<char> String::alloc;
+
+String::String(const char *pc) {
+    auto newdata = alloc.allocate(std::strlen(pc));
+    elements = newdata;
+    auto len = std::strlen(pc);
+    for (std::size_t i = 0; i < len; ++i)
+        alloc.construct(newdata++, *pc++);
+    cap = newdata;
+}
+
+String::String(const String &s) {
+    auto newdata = alloc_n_copy(s.begin(), s.end());
+    elements = newdata.first;
+    cap = newdata.second;
+}
+
+String::~String() { free(); }
+
+void String::free() {
+    if (elements) {
+        std::for_each(begin(), end(), [](const char& c) {alloc.destroy(&c);});
+        alloc.deallocate(begin(), size());
+    }
+}
+
+const char* String::c_str() {
+    return elements;
+}
+
+char String::operator[](std::size_t i) const {
+    return *(elements+i);
+}
+
+std::pair<char*, char*> String::alloc_n_copy(const char *b, const char *e) {
+    auto data = alloc.allocate(e - b);
+    return {data, std::uninitialized_copy(b, e, data)};
+}
+
+#endif //CPP_PRIMER_EX13_44_H
+
+```
+
+`main.cpp`
+
+```c++
+//
+// Created by wangheng on 2020/4/26.
+//
+
+#include <iostream>
+#include "ex13_44.h"
+
+int main() {
+    String str("hello");
+    for (auto iter = str.begin(); iter != str.end(); ++iter)
+        std::cout << *iter << '\t';
+    std::cout << std::endl;
+    std::cout << str.c_str() << std::endl;
+    std::cout << str.front() << '\t' << str.back() << '\t' << str[1] << std::endl;
+    String str2(str);
+    std::cout << str2.c_str() << std::endl;
+    return 0;
+}
+```
+
 
 
 ## 13.45
