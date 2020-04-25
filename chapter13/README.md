@@ -1538,7 +1538,7 @@ void StrVec::resize(std::size_t n) {
 
 > 在`push_back`中，我们为什么在`construct`调用中使用后置递增运算？如果使用前置递增运算的话，会发生什么？
 
-
+`first_free`指向实际元素之后的位置，是一个未被构造的内存空间，所以使用`push_back`添加元素时，应该添加在`first_free`所在的位置，然后再递增`first_free`指针，否则先递增将会导致一个未被构造的内存空间。
 
 ## 13.42
 
@@ -1550,7 +1550,7 @@ void StrVec::resize(std::size_t n) {
 
 > 重写`free`成员，用`for_each`和`lambda`（参加10.3.2节，第346页）来代替`for`循环`destroy`元素。你更倾向于哪种实现，为什么？
 
-`first_free`指向实际元素之后的位置，是一个未被构造的内存空间，所以使用`push_back`添加元素时，应该添加在`first_free`所在的位置，然后再递增`first_free`指针，否则先递增将会导致一个未被构造的内存空间。
+
 
 ## 13.44
 
