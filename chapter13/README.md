@@ -932,8 +932,6 @@ zoom
 
 `Message.h`
 
-
-
 ```c++
 //
 // Created by wangheng on 2020/4/25.
@@ -2093,6 +2091,98 @@ std::pair<char*, char*> String::alloc_n_copy(const char *b, const char *e) {
 
 > 定义一个`vector<String>`并在其上多次调用push_back。运行你的程序，并观察String被拷贝了多少次。
 
+头文件`ex13_44.h`
+
+```c++
+//
+// Created by wangheng on 2020/4/26.
+//
+
+#ifndef CPP_PRIMER_EX13_44_H
+#define CPP_PRIMER_EX13_44_H
+
+#include <memory>
+#include <cstring>
+#include <algorithm>
+
+class String {
+public:
+    String() : elements(nullptr), cap(nullptr) {}
+    String(const char*);
+    String(const String&);
+    String& operator=(const String&);
+    ~String();
+    char operator[](std::size_t) const ;
+    char front() const { return *elements; }
+    char back() const { return *(cap - 1);}
+    const char *c_str();
+    std::size_t size() const { return cap - elements; }
+    char *begin() const { return elements; }
+    char *end() const { return cap; }
+
+private:
+    static std::allocator<char> alloc;
+    std::pair<char*, char*> alloc_n_copy(const char*, const char*);
+    void free();
+    char *elements;
+    char *cap;
+};
+
+std::allocator<char> String::alloc;
+
+String::String(const char *pc) {
+    auto newdata = alloc.allocate(std::strlen(pc));
+    elements = newdata;
+    auto len = std::strlen(pc);
+    for (std::size_t i = 0; i < len; ++i)
+        alloc.construct(newdata++, *pc++);
+    cap = newdata;
+}
+
+String::String(const String &s) {
+    auto newdata = alloc_n_copy(s.begin(), s.end());
+    elements = newdata.first;
+    cap = newdata.second;
+    std::cout << "String(const String&)" << std::endl;
+}
+
+String& String::operator=(const String &s) {
+    auto newdata = alloc_n_copy(s.begin(), s.end());
+    free();
+    elements = newdata.first;
+    cap = newdata.second;
+    std::cout << "operator=(const String&)" << std::endl;
+    return *this;
+}
+
+String::~String() { free(); }
+
+void String::free() {
+    if (elements) {
+        std::for_each(begin(), end(), [](const char& c) {alloc.destroy(&c);});
+        alloc.deallocate(begin(), size());
+    }
+}
+
+const char* String::c_str() {
+    return elements;
+}
+
+char String::operator[](std::size_t i) const {
+    return *(elements+i);
+}
+
+std::pair<char*, char*> String::alloc_n_copy(const char *b, const char *e) {
+    auto data = alloc.allocate(e - b);
+    return {data, std::uninitialized_copy(b, e, data)};
+}
+
+#endif //CPP_PRIMER_EX13_44_H
+
+```
+
+源文件`ex13_48.cpp`
+
 ```c++
 //
 // Created by wangheng on 2020/4/26.
@@ -2114,19 +2204,594 @@ int main() {
 }
 ```
 
+运行结果：
+
+```c++
+String(const String&)
+String(const String&)
+String(const String&)
+String(const String&)
+String(const String&)
+String(const String&)
+String(const String&)
+String(const String&)
+String(const String&)
+String(const String&)
+String(const String&)
+String(const String&)
+```
+
 
 
 ## 13.49
 
 > 为你的`StrVec`、`String`和`Message`类添加一个移动构造函数和一个移动赋值运算符。
 
+`StrVec`类在练习13.43的基础上修改，参见`ex13_43.h`源码
+
+```c++
+//
+// Created by wangheng on 2020/4/25.
+//
+
+#ifndef CPP_PRIMER_EX13_43_H
+#define CPP_PRIMER_EX13_43_H
+
+#include <memory>
+#include <string>
+#include <initializer_list>
+#include <algorithm>
+
+class StrVec {
+public:
+    StrVec() :  // allocator成员进行默认初始化
+            elements(nullptr), first_free(nullptr), cap(nullptr) {}
+    StrVec(std::initializer_list<std::string> il);
+    StrVec(const StrVec&);  // 拷贝构造函数
+    StrVec& operator=(const StrVec&);   // 拷贝赋值运算符
+    StrVec(StrVec&&) noexcept ;   // 移动构造函数
+    StrVec& operator=(StrVec&&) noexcept ;    // 移动赋值运算符
+    ~StrVec();  // 析构函数
+    void push_back(const std::string&);   // 拷贝元素
+    std::size_t size() const { return first_free - elements; }
+    std::size_t capacity() const { return cap - elements; }
+    std::string *begin() const { return elements; }
+    std::string *end() const { return first_free; }
+    void reserve(std::size_t);
+    void resize(std::size_t);
+
+private:
+    static std::allocator<std::string> alloc;   // 分配元素
+    // 被添加元素的函数所使用
+    void chk_n_alloc() {
+        if (size() == capacity())
+            reallocate();
+    }
+    // 工具函数，被拷贝构造函数、赋值运算符和析构函数使用
+    std::pair<std::string*, std::string*> alloc_n_copy
+            (const std::string*, const std::string*);
+    void free();    // 销毁元素并释放内存
+    void reallocate();  // 获得更多内存并拷贝已有元素
+    std::string *elements;
+    std::string *first_free;
+    std::string *cap;
+
+};
+
+std::allocator<std::string> StrVec::alloc;
+
+StrVec::StrVec(std::initializer_list<std::string> il) {
+    auto newdata = alloc.allocate(il.size());
+    elements = newdata;
+    for (auto s : il)
+        alloc.construct(newdata++, s);
+    first_free = cap = newdata;
+    std::cout << "StrVec(std::initializer_list<std::string>)" << std::endl;
+}
+
+StrVec::StrVec(const StrVec &sv) {
+    // 调用alloc_n_copy分配空间以容纳与s中一样多的元素
+    auto newdata = alloc_n_copy(sv.begin(), sv.end());
+    elements = newdata.first;
+    first_free = cap = newdata.second;
+    std::cout << "StrVec(const StrVec&)" << std::endl;
+}
+
+StrVec& StrVec::operator=(const StrVec &sv) {
+    // 调用alloc_n_copy分配内存，大小与sv中元素一样多
+    auto newdata = alloc_n_copy(sv.begin(), sv.end());
+    free();
+    elements = newdata.first;
+    first_free = cap = newdata.second;
+    std::cout << "operator=(const StrVec&)" << std::endl;
+    return *this;
+}
+
+StrVec::StrVec(StrVec &&sv) noexcept :
+        elements(sv.elements), first_free(sv.first_free), cap(sv.cap) {
+    sv.elements = sv.first_free = sv.cap = nullptr;
+    std::cout << "StrVec(StrVec&&)" << std::endl;
+}
+
+StrVec& StrVec::operator=(StrVec &&rhs) noexcept {
+    if (this != &rhs) {
+        free();
+        elements = rhs.elements;
+        first_free = rhs.first_free;
+        cap = rhs.cap;
+        rhs.elements = rhs.first_free = rhs.cap = nullptr;
+    }
+    std::cout << "operator=(StrVec&&)" << std::endl;
+    return *this;
+}
+
+StrVec::~StrVec() noexcept {
+    free();
+}
+
+void StrVec::push_back(const std::string &s) {
+    chk_n_alloc();  // 确保有空间容纳所有元素
+    // 在first_free指向的元素中构造s的副本
+    alloc.construct(first_free++, s);
+}
+
+std::pair<std::string*, std::string*>
+StrVec::alloc_n_copy(const std::string *b, const std::string *e) {
+    // 分配空间保存给定元素范围中的元素
+    auto data = alloc.allocate(e - b);
+    // 初始化并返回一个pair，该pair由data和uninitialized_copy的返回值构成
+    return {data, std::uninitialized_copy(b, e, data)};
+}
+
+void StrVec::free() {
+    // 不能传递给deallocate一个空指针，如果elements为0，函数什么也不做
+    if (elements) {
+        // 逆序销毁旧元素
+        std::for_each(begin(), end(), [](std::string& rhs) {alloc.destroy(&rhs);});
+        alloc.deallocate(elements, cap - elements);
+    }
+}
+
+void StrVec::reallocate() {
+    // 我们将分配当前大小两倍的内存空间
+    auto newcapacity = size() ? 2 * size() : 1;
+    auto first = alloc.allocate(newcapacity);
+    // 移动元素
+    auto last = std::uninitialized_copy(std::make_move_iterator(begin()),
+                                        std::make_move_iterator(end()), first);
+    free();
+    elements = first;
+    first_free = last;
+    cap = elements + newcapacity;
+}
+
+void StrVec::reserve(std::size_t n) {
+    if (capacity() < n) {
+        auto newdata = alloc.allocate(n);
+        auto dest = newdata;
+        auto elem = elements;
+        for (std::size_t i = 0; i != size(); ++i)
+            alloc.construct(dest++, std::move(*elem++));
+        free();
+        elements = newdata;
+        first_free = dest;
+        cap = elements + n;
+    }
+}
+
+void StrVec::resize(std::size_t n) {
+    if (n < size()) {
+        auto len = size() - n;
+        for (std::size_t i = 0; i < len; ++i)
+            alloc.destroy(--first_free);
+    } else {
+        reserve(n);
+        auto len = n - size();
+        for (std::size_t i = 0; i < len; ++i)
+            alloc.construct(first_free++, std::string());
+    }
+}
+
+#endif //CPP_PRIMER_EX13_43_H
+
+```
+
+`String`类在练习13.44的基础上修改，参见`ex13_44.h`源码
+
+```c++
+//
+// Created by wangheng on 2020/4/26.
+//
+
+#ifndef CPP_PRIMER_EX13_44_H
+#define CPP_PRIMER_EX13_44_H
+
+#include <memory>
+#include <cstring>
+#include <algorithm>
+
+class String {
+public:
+    String() : elements(nullptr), cap(nullptr) {}
+    String(const char*);
+    String(const String&);
+    String& operator=(const String&);
+    String(String&&);
+    String& operator=(String&&);
+    ~String();
+    char operator[](std::size_t) const ;
+    char front() const { return *elements; }
+    char back() const { return *(cap - 1);}
+    const char *c_str();
+    std::size_t size() const { return cap - elements; }
+    char *begin() const { return elements; }
+    char *end() const { return cap; }
+
+private:
+    static std::allocator<char> alloc;
+    std::pair<char*, char*> alloc_n_copy(const char*, const char*);
+    void free();
+    char *elements;
+    char *cap;
+};
+
+std::allocator<char> String::alloc;
+
+String::String(const char *pc) {
+    auto newdata = alloc.allocate(std::strlen(pc));
+    elements = newdata;
+    auto len = std::strlen(pc);
+    for (std::size_t i = 0; i < len; ++i)
+        alloc.construct(newdata++, *pc++);
+    cap = newdata;
+}
+
+String::String(const String &s) {
+    auto newdata = alloc_n_copy(s.begin(), s.end());
+    elements = newdata.first;
+    cap = newdata.second;
+    std::cout << "String(const String&)" << std::endl;
+}
+
+String& String::operator=(const String &s) {
+    auto newdata = alloc_n_copy(s.begin(), s.end());
+    free();
+    elements = newdata.first;
+    cap = newdata.second;
+    std::cout << "operator=(const String&)" << std::endl;
+    return *this;
+}
+
+String::String(String &&s) : elements(s.elements), cap(s.cap) {
+    s.elements = s.cap = nullptr;
+}
+
+String& String::operator=(String &&rhs) {
+    if (this != &rhs) {
+        free();
+        elements = rhs.elements;
+        cap = rhs.cap;
+        rhs.elements = rhs.cap = nullptr;
+    }
+    return *this;
+}
+
+String::~String() { free(); }
+
+void String::free() {
+    if (elements) {
+        std::for_each(begin(), end(), [](const char& c) {alloc.destroy(&c);});
+        alloc.deallocate(begin(), size());
+    }
+}
+
+const char* String::c_str() {
+    return elements;
+}
+
+char String::operator[](std::size_t i) const {
+    return *(elements+i);
+}
+
+std::pair<char*, char*> String::alloc_n_copy(const char *b, const char *e) {
+    auto data = alloc.allocate(e - b);
+    return {data, std::uninitialized_copy(b, e, data)};
+}
+
+#endif //CPP_PRIMER_EX13_44_H
+
+```
+
+`Message`类在练习13.34的基础上修改，详见`ex13_34.h`和`ex13_34.cpp`源码
+
+```c++
+//
+// Created by wangheng on 2020/4/25.
+//
+
+#ifndef CPP_PRIMER_EX13_34_H
+#define CPP_PRIMER_EX13_34_H
+
+#include <string>
+#include <set>
+
+class Folder;
+class Message {
+    friend class Folder;
+    friend void swap(Message&, Message&);
+
+public:
+    // folder被隐式初始化为空集合
+    explicit Message(const std::string &str = "") : contents(str) {}
+    // 拷贝控制成员，用来管理指向本Message的指针
+    Message(const Message&);    // 拷贝构造函数
+    Message& operator=(const Message&);     // 拷贝赋值运算符
+    Message(Message&&);     // 移动构造函数
+    Message& operator=(Message&&);  // 移动赋值运算符
+    ~Message();
+    // 从给定的Folder集合中添加/删除本Message
+    void save(Folder&);
+    void remove(Folder&);
+    void addFolder(Folder*);
+    void remFolder(Folder*);
+
+private:
+    std::string contents;   // 实际文本消息
+    std::set<Folder*> folders;  // 包含文本Message的Folder
+    // 拷贝构造函数、拷贝赋值运算符和析构函数所使用的工具函数
+    // 将本Message添加到指向参数的Folder中
+    void add_to_Folders(const Message&);
+    // 从folders中的每个Folder中删除本Message
+    void remove_from_Folders();
+};
+
+#endif //CPP_PRIMER_EX13_34_H
+
+```
+
+```c++
+//
+// Created by wangheng on 2020/4/25.
+//
+
+#include "ex13_34.h"
+#include "ex13_36.h"
+
+Message::Message(const Message &rhs) : contents(rhs.contents), folders(rhs.folders) {
+    add_to_Folders(rhs);    // 将本消息添加到指向rhs的Folder中
+}
+
+Message& Message::operator=(const Message &rhs) {
+    // 通过先删除指针再插入他们来处理自赋值情况
+    this->remove_from_Folders();    // 更新已有Folder
+    contents = rhs.contents;        // 从rhs拷贝消息
+    folders = rhs.folders;          // 从rhs拷贝Folder指针
+    this->add_to_Folders(rhs);      // 将本Message添加到那些Folder中
+    return *this;
+}
+
+Message::Message(Message &&m) : contents(std::move(m.contents)) {
+    m.remove_from_Folders();
+    folders = std::move(m.folders);
+    add_to_Folders(*this);
+}
+
+Message& Message::operator=(Message &&rhs) {
+    if (this != &rhs) {
+        rhs.remove_from_Folders();
+        contents = std::move(rhs.contents);
+        folders = std::move(rhs.folders);
+        add_to_Folders(*this);
+    }
+    return *this;
+}
+
+Message::~Message() {
+    remove_from_Folders();
+}
+
+void Message::save(Folder &f) {
+    folders.insert(&f);     // 将给定Folder添加到我们的Folder列表中
+    f.addMsg(this);         // 将本Message添加到f的Message集合中
+}
+
+void Message::remove(Folder &f) {
+    folders.erase(&f);      // 将给定的Folder从我们的Folder列表中删除
+    f.remMsg(this);         // 将本Message从f的Message集合中删除
+}
+
+void Message::add_to_Folders(const Message &m) {
+    for (auto f : m.folders)   // 对每个包含m的folder
+        f->addMsg(this);        // 向该Folder添加一个指向本Message的指针
+}
+
+void Message::remove_from_Folders() {
+    for (auto f : this->folders)   // 对folders中每个指针
+        f->remMsg(this);    // 从该Folder中删除Message
+}
+
+void swap(Message& lhs, Message& rhs) {
+    using std::swap;
+    // 将每个消息的指针从它（原来）所在的Folder中删除
+    for (auto f : lhs.folders)
+        f->remMsg(&lhs);
+    for (auto f : rhs.folders)
+        f->remMsg(&rhs);
+
+    // 交换contents和Folder指针set
+    swap(lhs.contents, rhs.contents);
+    swap(lhs.folders, rhs.folders);
+
+    // 将每个Message的指针添加到它的（新）Folder中
+    for (auto f : lhs.folders)
+        f->addMsg(&lhs);
+    for (auto f : rhs.folders)
+        f->addMsg(&rhs);
+}
+
+void Message::addFolder(Folder *f) {
+    folders.insert(f);
+}
+
+void Message::remFolder(Folder *f) {
+    folders.erase(f);
+}
+```
+
 
 
 ## 13.50
 
-> 在你的String类的移动操作中添加打印语句，并重新运行13.6.1节（第473页）的联系13.48中的程序，它使用了一个`vector<String>`，观察什么时候会避免拷贝。
+> 在你的String类的移动操作中添加打印语句，并重新运行13.6.1节（第473页）的练习13.48中的程序，它使用了一个`vector<String>`，观察什么时候会避免拷贝。
 
+头文件`ex13_44.h`
 
+```c++
+//
+// Created by wangheng on 2020/4/26.
+//
+
+#ifndef CPP_PRIMER_EX13_44_H
+#define CPP_PRIMER_EX13_44_H
+
+#include <memory>
+#include <cstring>
+#include <algorithm>
+
+class String {
+public:
+    String() : elements(nullptr), cap(nullptr) {}
+    String(const char*);
+    String(const String&);
+    String& operator=(const String&);
+    String(String&&) noexcept ;
+    String& operator=(String&&) noexcept ;
+    ~String();
+    char operator[](std::size_t) const ;
+    char front() const { return *elements; }
+    char back() const { return *(cap - 1);}
+    const char *c_str();
+    std::size_t size() const { return cap - elements; }
+    char *begin() const { return elements; }
+    char *end() const { return cap; }
+
+private:
+    static std::allocator<char> alloc;
+    std::pair<char*, char*> alloc_n_copy(const char*, const char*);
+    void free();
+    char *elements;
+    char *cap;
+};
+
+std::allocator<char> String::alloc;
+
+String::String(const char *pc) {
+    auto newdata = alloc.allocate(std::strlen(pc));
+    elements = newdata;
+    auto len = std::strlen(pc);
+    for (std::size_t i = 0; i < len; ++i)
+        alloc.construct(newdata++, *pc++);
+    cap = newdata;
+}
+
+String::String(const String &s) {
+    auto newdata = alloc_n_copy(s.begin(), s.end());
+    elements = newdata.first;
+    cap = newdata.second;
+    std::cout << "String(const String&)" << std::endl;
+}
+
+String& String::operator=(const String &s) {
+    auto newdata = alloc_n_copy(s.begin(), s.end());
+    free();
+    elements = newdata.first;
+    cap = newdata.second;
+    std::cout << "operator=(const String&)" << std::endl;
+    return *this;
+}
+
+String::String(String &&s) noexcept : elements(s.elements), cap(s.cap) {
+    s.elements = s.cap = nullptr;
+    std::cout << "String(String&&)" << std::endl;
+}
+
+String& String::operator=(String &&rhs) noexcept {
+    if (this != &rhs) {
+        free();
+        elements = rhs.elements;
+        cap = rhs.cap;
+        rhs.elements = rhs.cap = nullptr;
+    }
+    return *this;
+}
+
+String::~String() { free(); }
+
+void String::free() {
+    if (elements) {
+        std::for_each(begin(), end(), [](const char& c) {alloc.destroy(&c);});
+        alloc.deallocate(begin(), size());
+    }
+}
+
+const char* String::c_str() {
+    return elements;
+}
+
+char String::operator[](std::size_t i) const {
+    return *(elements+i);
+}
+
+std::pair<char*, char*> String::alloc_n_copy(const char *b, const char *e) {
+    auto data = alloc.allocate(e - b);
+    return {data, std::uninitialized_copy(b, e, data)};
+}
+
+#endif //CPP_PRIMER_EX13_44_H
+
+```
+
+源文件`ex13_48.cpp`
+
+```c++
+//
+// Created by wangheng on 2020/4/26.
+//
+
+#include <iostream>
+#include <vector>
+#include "ex13_44.h"
+
+int main() {
+    std::vector<String> strVec;
+    strVec.push_back("hello");
+    strVec.push_back("good");
+    strVec.push_back("world");
+    strVec.push_back("china");
+    strVec.push_back("cpp");
+
+    return 0;
+}
+```
+
+运行结果：
+
+```c++
+String(String&&)
+String(String&&)
+String(String&&)
+String(String&&)
+String(String&&)
+String(String&&)
+String(String&&)
+String(String&&)
+String(String&&)
+String(String&&)
+String(String&&)
+String(String&&)
+```
+
+对比练习13.48可以发现，`push_back()`函数在有移动构造函数可用的情况下会优先调用移动构造函数，`vector`在内存不够重新分配内存时调用移动构造函数的条件是移动构造函数声明时要加`noexcept`显示声明移动构造函数可用不会出错。
 
 ## 13.51
 
