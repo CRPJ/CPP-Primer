@@ -10,6 +10,7 @@
 #include <initializer_list>
 #include <string>
 #include <stdexcept>
+#include <iostream>
 
 class StrBlob
 {
@@ -72,10 +73,13 @@ std::string &StrBlob::back() const {
 }
 
 StrBlob::StrBlob(const StrBlob &rhs) :
-    data(std::make_shared<std::vector<std::string>>(*rhs.data)) {}
+    data(std::make_shared<std::vector<std::string>>(*rhs.data)) {
+    std::cout << "StrBlob::StrBlob(const StrBlob&)" << std::endl;
+}
 
 StrBlob& StrBlob::operator=(const StrBlob &rhs) {
     data.reset(new std::vector<std::string>(*rhs.data));
+    std::cout << "StrBlob::operator=(const StrBlob&)" << std::endl;
     return *this;
 }
 #endif //CPP_PRIMER_EX13_26_H
