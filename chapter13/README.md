@@ -2891,7 +2891,7 @@ HasPtr::~HasPtr() {
 
 `ex13_53.cpp`
 
-```c+
+```c++
 //
 // Created by wangheng on 2020/4/27.
 //
