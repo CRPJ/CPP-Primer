@@ -31,6 +31,7 @@ public:
     std::string &back() const;
     StrBlobPtr begin();
     StrBlobPtr end();
+    int count() { return data.use_count(); }
 private:
     std::shared_ptr<std::vector<std::string>> data;
     // 如果data[i]不合法，抛出异常
@@ -79,6 +80,7 @@ public:
     StrBlobPtr() : curr(0) {}
     // 使用StrBlob的引用避免拷贝
     StrBlobPtr(StrBlob& a, size_t sz = 0) : wptr(a.data), curr(sz) {}
+    bool operator!=(const StrBlobPtr& p) { return p.curr != this->curr; }
     std::string &dref() const ;
     StrBlobPtr& incr();     // 递增前缀
 private:
@@ -112,11 +114,11 @@ StrBlobPtr::check(std::size_t i, const std::string &msg) const {
     return ret;
 }
 
-StrBlobPtr StrBlob::begin() {
+StrBlobPtr StrBlob::begin(){
     return StrBlobPtr(*this);
 }
 
-StrBlobPtr StrBlob::end() {
+StrBlobPtr StrBlob::end(){
     auto ret = StrBlobPtr(*this, data->size());
     return ret;
 }
