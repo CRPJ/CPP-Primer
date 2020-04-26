@@ -14,6 +14,7 @@ public:
     String() : elements(nullptr), cap(nullptr) {}
     String(const char*);
     String(const String&);
+    String& operator=(const String&);
     ~String();
     char operator[](std::size_t) const ;
     char front() const { return *elements; }
@@ -46,6 +47,16 @@ String::String(const String &s) {
     auto newdata = alloc_n_copy(s.begin(), s.end());
     elements = newdata.first;
     cap = newdata.second;
+    std::cout << "String(const String&)" << std::endl;
+}
+
+String& String::operator=(const String &s) {
+    auto newdata = alloc_n_copy(s.begin(), s.end());
+    free();
+    elements = newdata.first;
+    cap = newdata.second;
+    std::cout << "operator=(const String&)" << std::endl;
+    return *this;
 }
 
 String::~String() { free(); }

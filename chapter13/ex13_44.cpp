@@ -14,5 +14,7 @@ int main() {
     std::cout << str.front() << '\t' << str.back() << '\t' << str[1] << std::endl;
     String str2(str);
     std::cout << str2.c_str() << std::endl;
+    String str3;
+    str3 = str2;
     return 0;
 }
