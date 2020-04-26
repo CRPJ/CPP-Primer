@@ -19,6 +19,8 @@ public:
     // 拷贝控制成员，用来管理指向本Message的指针
     Message(const Message&);    // 拷贝构造函数
     Message& operator=(const Message&);     // 拷贝赋值运算符
+    Message(Message&&);     // 移动构造函数
+    Message& operator=(Message&&);  // 移动赋值运算符
     ~Message();
     // 从给定的Folder集合中添加/删除本Message
     void save(Folder&);

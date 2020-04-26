@@ -18,6 +18,22 @@ Message& Message::operator=(const Message &rhs) {
     return *this;
 }
 
+Message::Message(Message &&m) : contents(std::move(m.contents)) {
+    m.remove_from_Folders();
+    folders = std::move(m.folders);
+    add_to_Folders(*this);
+}
+
+Message& Message::operator=(Message &&rhs) {
+    if (this != &rhs) {
+        rhs.remove_from_Folders();
+        contents = std::move(rhs.contents);
+        folders = std::move(rhs.folders);
+        add_to_Folders(*this);
+    }
+    return *this;
+}
+
 Message::~Message() {
     remove_from_Folders();
 }
