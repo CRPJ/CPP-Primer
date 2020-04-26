@@ -1965,7 +1965,9 @@ int main() {
 
 > 解释右值引用和左值引用的区别。
 
+常规的引用叫做左值引用，只能绑定到左值，例如返回左值引用的函数、赋值、下标、解引用和前置递增/递减运算符都生成左值。
 
+右值引用只能绑定到右值，即只能绑定到一个将要被销毁的对象，返回非引用类型的函数、连同算数、关系、位以及后置递增/递减运算符都生成右值。
 
 ## 13.46
 
@@ -1974,11 +1976,20 @@ int main() {
 > ```c++
 > int f();
 > vector<int> vi(100);
-> int? r1 = f();
-> int? r2 = vi(0);
-> int? r3 = r1;
-> int? r4 = vi[0] * f();
+> int? r1 = f();	// 右值引用
+> int? r2 = vi[0];	// 左值引用
+> int? r3 = r1;	// 左值引用
+> int? r4 = vi[0] * f();	// 右值引用
 > ```
+
+```c++
+int f();
+vector<int> vi(100);
+int&& r1 = f();	// 返回非左值引用的函数生成右值
+int& r2 = vi[0];	// 下标运算符生成左值
+int& r3 = r2;	// 赋值运算符生成左值
+int&& r4 = vi[0] * f(0);	// 算数表达式生成右值
+```
 
 
 
@@ -1986,9 +1997,122 @@ int main() {
 
 > 对你在练习13.44（13.5节，第470页）中定义的String类，为它的拷贝构造函数和拷贝赋值运算符添加一条语句，在每次函数执行时打印一条消息。
 
+查看13.44的源代码
+
+```c++
+//
+// Created by wangheng on 2020/4/26.
+//
+
+#ifndef CPP_PRIMER_EX13_44_H
+#define CPP_PRIMER_EX13_44_H
+
+#include <memory>
+#include <cstring>
+#include <algorithm>
+
+class String {
+public:
+    String() : elements(nullptr), cap(nullptr) {}
+    String(const char*);
+    String(const String&);
+    String& operator=(const String&);
+    ~String();
+    char operator[](std::size_t) const ;
+    char front() const { return *elements; }
+    char back() const { return *(cap - 1);}
+    const char *c_str();
+    std::size_t size() const { return cap - elements; }
+    char *begin() const { return elements; }
+    char *end() const { return cap; }
+
+private:
+    static std::allocator<char> alloc;
+    std::pair<char*, char*> alloc_n_copy(const char*, const char*);
+    void free();
+    char *elements;
+    char *cap;
+};
+
+std::allocator<char> String::alloc;
+
+String::String(const char *pc) {
+    auto newdata = alloc.allocate(std::strlen(pc));
+    elements = newdata;
+    auto len = std::strlen(pc);
+    for (std::size_t i = 0; i < len; ++i)
+        alloc.construct(newdata++, *pc++);
+    cap = newdata;
+}
+
+String::String(const String &s) {
+    auto newdata = alloc_n_copy(s.begin(), s.end());
+    elements = newdata.first;
+    cap = newdata.second;
+    std::cout << "String(const String&)" << std::endl;
+}
+
+String& String::operator=(const String &s) {
+    auto newdata = alloc_n_copy(s.begin(), s.end());
+    free();
+    elements = newdata.first;
+    cap = newdata.second;
+    std::cout << "operator=(const String&)" << std::endl;
+    return *this;
+}
+
+String::~String() { free(); }
+
+void String::free() {
+    if (elements) {
+        std::for_each(begin(), end(), [](const char& c) {alloc.destroy(&c);});
+        alloc.deallocate(begin(), size());
+    }
+}
+
+const char* String::c_str() {
+    return elements;
+}
+
+char String::operator[](std::size_t i) const {
+    return *(elements+i);
+}
+
+std::pair<char*, char*> String::alloc_n_copy(const char *b, const char *e) {
+    auto data = alloc.allocate(e - b);
+    return {data, std::uninitialized_copy(b, e, data)};
+}
+
+#endif //CPP_PRIMER_EX13_44_H
+
+```
+
+
+
 ## 13.48
 
 > 定义一个`vector<String>`并在其上多次调用push_back。运行你的程序，并观察String被拷贝了多少次。
+
+```c++
+//
+// Created by wangheng on 2020/4/26.
+//
+
+#include <iostream>
+#include <vector>
+#include "ex13_44.h"
+
+int main() {
+    std::vector<String> strVec;
+    strVec.push_back("hello");
+    strVec.push_back("good");
+    strVec.push_back("world");
+    strVec.push_back("china");
+    strVec.push_back("cpp");
+
+    return 0;
+}
+```
 
 
 
