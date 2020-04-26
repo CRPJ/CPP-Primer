@@ -17,6 +17,8 @@ public:
     StrVec(std::initializer_list<std::string> il);
     StrVec(const StrVec&);  // 拷贝构造函数
     StrVec& operator=(const StrVec&);   // 拷贝赋值运算符
+    StrVec(StrVec&&) noexcept ;   // 移动构造函数
+    StrVec& operator=(StrVec&&) noexcept ;    // 移动赋值运算符
     ~StrVec();  // 析构函数
     void push_back(const std::string&);   // 拷贝元素
     std::size_t size() const { return first_free - elements; }
@@ -70,7 +72,23 @@ StrVec& StrVec::operator=(const StrVec &sv) {
     return *this;
 }
 
-StrVec::~StrVec() {
+StrVec::StrVec(StrVec &&sv) noexcept :
+        elements(sv.elements), first_free(sv.first_free), cap(sv.cap) {
+    sv.elements = sv.first_free = sv.cap = nullptr;
+}
+
+StrVec& StrVec::operator=(StrVec &&rhs) noexcept {
+    if (this != &rhs) {
+        free();
+        elements = rhs.elements;
+        first_free = rhs.first_free;
+        cap = rhs.cap;
+        rhs.elements = rhs.first_free = rhs.cap = nullptr;
+    }
+    return *this;
+}
+
+StrVec::~StrVec() noexcept {
     free();
 }
 
