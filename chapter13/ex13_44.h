@@ -15,6 +15,8 @@ public:
     String(const char*);
     String(const String&);
     String& operator=(const String&);
+    String(String&&) noexcept ;
+    String& operator=(String&&) noexcept ;
     ~String();
     char operator[](std::size_t) const ;
     char front() const { return *elements; }
@@ -56,6 +58,21 @@ String& String::operator=(const String &s) {
     elements = newdata.first;
     cap = newdata.second;
     std::cout << "operator=(const String&)" << std::endl;
+    return *this;
+}
+
+String::String(String &&s) noexcept : elements(s.elements), cap(s.cap) {
+    s.elements = s.cap = nullptr;
+    std::cout << "String(String&&)" << std::endl;
+}
+
+String& String::operator=(String &&rhs) noexcept {
+    if (this != &rhs) {
+        free();
+        elements = rhs.elements;
+        cap = rhs.cap;
+        rhs.elements = rhs.cap = nullptr;
+    }
     return *this;
 }
 
