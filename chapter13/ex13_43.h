@@ -54,6 +54,7 @@ StrVec::StrVec(std::initializer_list<std::string> il) {
     for (auto s : il)
         alloc.construct(newdata++, s);
     first_free = cap = newdata;
+    std::cout << "StrVec(std::initializer_list<std::string>)" << std::endl;
 }
 
 StrVec::StrVec(const StrVec &sv) {
@@ -61,6 +62,7 @@ StrVec::StrVec(const StrVec &sv) {
     auto newdata = alloc_n_copy(sv.begin(), sv.end());
     elements = newdata.first;
     first_free = cap = newdata.second;
+    std::cout << "StrVec(const StrVec&)" << std::endl;
 }
 
 StrVec& StrVec::operator=(const StrVec &sv) {
@@ -69,12 +71,14 @@ StrVec& StrVec::operator=(const StrVec &sv) {
     free();
     elements = newdata.first;
     first_free = cap = newdata.second;
+    std::cout << "operator=(const StrVec&)" << std::endl;
     return *this;
 }
 
 StrVec::StrVec(StrVec &&sv) noexcept :
         elements(sv.elements), first_free(sv.first_free), cap(sv.cap) {
     sv.elements = sv.first_free = sv.cap = nullptr;
+    std::cout << "StrVec(StrVec&&)" << std::endl;
 }
 
 StrVec& StrVec::operator=(StrVec &&rhs) noexcept {
@@ -85,6 +89,7 @@ StrVec& StrVec::operator=(StrVec &&rhs) noexcept {
         cap = rhs.cap;
         rhs.elements = rhs.first_free = rhs.cap = nullptr;
     }
+    std::cout << "operator=(StrVec&&)" << std::endl;
     return *this;
 }
 
@@ -118,17 +123,13 @@ void StrVec::free() {
 void StrVec::reallocate() {
     // 我们将分配当前大小两倍的内存空间
     auto newcapacity = size() ? 2 * size() : 1;
-    // 分配新内存
-    auto newdata = alloc.allocate(newcapacity);
-    // 将数据从旧内存移动到新内存
-    auto dest = newdata;    // 指向新数组中下一个空闲位置
-    auto elem = elements;   // 指向旧版本中下一个元素
-    for (std::size_t i = 0; i != size(); ++i)
-        alloc.construct(dest++, std::move(*elem++));
-    free(); // 一旦我们移动完元素就释放就内存空间
-    // 更新我们的数据结构，执行新元素
-    elements = newdata;
-    first_free = dest;
+    auto first = alloc.allocate(newcapacity);
+    // 移动元素
+    auto last = std::uninitialized_copy(std::make_move_iterator(begin()),
+                                        std::make_move_iterator(end()), first);
+    free();
+    elements = first;
+    first_free = last;
     cap = elements + newcapacity;
 }
 
