@@ -2797,17 +2797,119 @@ String(String&&)
 
 > 虽然`unique_ptr`不能拷贝，但是我们在12.1.5节（第418页）中编写了一个`clone`函数，它以值方式返回一个`unique_ptr`。解释为什么函数是合法的，以及为什么它能正确工作。
 
-
+`clone`函数中以移动的方式返回而不是拷贝的方式，所以是合法的。
 
 ## 13.52
 
 > 详细解释第478页中的`HasPtr`对象的赋值发生了什么？特别是，一步一步描述`hp`、`hp2`以及`HasPtr`的赋值运算符中的参数`rhs`的值繁盛了什么变化。
 
+`hp = hp2;`，这条语句中由于`hp2`是一个左值，所以调用赋值运算符参数传递时发生拷贝构造，函数体中将运算符左边对象和右边对象`swap`，即将运算符右边的对象赋值给坐标对象，左边对象赋值给右边对象，函数返回时形参`rhs`销毁，相应地释放了原来运算符左边的对象。
 
+`hp = std::move(hp2);`，这条语句中`std::move(hp2)`将一个右值绑定在`hp2`上，在此情况下拷贝构造函数和移动构造寒素都是可行的，但是由于实参是一个右值引用，移动构造函数是精确匹配的，移动构造函数从`hp2`拷贝指针，而不会分配任何内存。
 
 ## 13.53
 
 > 从底层效率的角度看，`HasPtr`的赋值运算符并不理想，解释为什么。为`HasPtr`实现一个拷贝赋值运算符和一个移动赋值运算符，并比较你的新的移动赋值运算符中执行的操作和拷贝并交换版本中执行的操作。
+
+`ex13_53.h`
+
+```C++
+//
+// Created by wangheng on 2020/4/27.
+//
+
+#ifndef CPP_PRIMER_EX13_53_H
+#define CPP_PRIMER_EX13_53_H
+
+#include <string>
+
+class HasPtr {
+public:
+    // 构造函数分配新的string和新的计数器，将计数器置为1
+    HasPtr(const std::string& s = std::string()) :
+            ps(new std::string(s)), i(0), use(new std::size_t(1)) {}
+    // 拷贝构造函数拷贝所有三个数据成员，并递增计数器
+    HasPtr(const HasPtr& p) : ps(p.ps), i(p.i), use(p.use) {
+        ++*use;
+        std::cout << "HasPtr::HasPtr(const HasPtr&)" << std::endl;
+    }
+    HasPtr& operator=(const HasPtr&);
+    HasPtr(HasPtr&&);
+    HasPtr& operator=(HasPtr&&);
+    ~HasPtr();
+
+private:
+    std::string *ps;
+    int i;
+    std::size_t *use;   // 用来记录有多少个对象共享*ps的成员
+};
+
+HasPtr& HasPtr::operator=(const HasPtr &rhs) {
+    ++*rhs.use;     // 递增右侧运算符对象的引用计数
+    if (--*use == 0) {  // 然后递减本对象的引用计数
+        delete ps;      // 如果没有其它用户
+        delete use;     // 释放本对象分配的成员
+    }
+    ps = rhs.ps;        // 将数据从rhs拷贝到本对象
+    i = rhs.i;
+    use = rhs.use;
+    std::cout << "HasPtr::operator=(const HasPtr&)" << std::endl;
+
+    return *this;   // 返回本对象
+}
+
+HasPtr::HasPtr(HasPtr &&hp) : ps(hp.ps), i(std::move(hp.i)), use(hp.use) {
+    ++*hp.use;
+    std::cout << "HasPtr::HasPtr(HasPtr&&)" << std::endl;
+}
+
+HasPtr& HasPtr::operator=(HasPtr &&rhs) {
+    if (this != &rhs) {
+        ++*rhs.use;
+        if (--*use == 0) {
+            delete ps;
+            delete use;
+        }
+        ps = rhs.ps;
+        i = std::move(i);
+        use = rhs.use;
+    }
+    std::cout << "HasPtr::operator=(HasPtr&&)" << std::endl;
+    return *this;
+}
+
+HasPtr::~HasPtr() {
+    if (--*use == 0) {  // 如果引用计数变为0
+        delete ps;      // 释放string内存
+        delete use;     // 释放计数器内存
+    }
+}
+
+#endif //CPP_PRIMER_EX13_53_H
+
+```
+
+`ex13_53.cpp`
+
+```c+
+//
+// Created by wangheng on 2020/4/27.
+//
+
+#include <iostream>
+#include "ex13_53.h"
+
+int main() {
+    HasPtr hp(std::string("hello"));
+    HasPtr hp2 = hp;
+    HasPtr hp3 = std::move(hp);
+    HasPtr hp4;
+    hp4 = hp3;
+    hp4 = std::move(hp);
+
+    return 0;
+}
+```
 
 
 
