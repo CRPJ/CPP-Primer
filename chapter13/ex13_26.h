@@ -24,6 +24,7 @@ public:
     bool empty() const { return data->empty(); }
     // 添加和删除元素
     void push_back(const std::string &t) { data->push_back(t); }
+    void push_back(std::string&& t);
     void pop_back();
     // 元素访问
     std::string &front();
@@ -45,6 +46,10 @@ void StrBlob::check(size_type i, const std::string &msg) const {
     if (i >= data->size()) {
         throw std::out_of_range(msg);
     }
+}
+
+void StrBlob::push_back(std::string &&t) {
+    data->push_back(std::move(t));
 }
 
 void StrBlob::pop_back() {

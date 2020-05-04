@@ -43,6 +43,7 @@ String::String(const char *pc) {
     for (std::size_t i = 0; i < len; ++i)
         alloc.construct(newdata++, *pc++);
     cap = newdata;
+    std::cout << "String(const char*)" << std::endl;
 }
 
 String::String(const String &s) {

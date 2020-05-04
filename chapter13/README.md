@@ -2911,17 +2911,47 @@ int main() {
 }
 ```
 
+运行结果：
+
+```c++
+HasPtr::HasPtr(const HasPtr&)
+HasPtr::HasPtr(HasPtr&&)
+HasPtr::operator=(const HasPtr&)
+HasPtr::operator=(HasPtr&&)
+```
+
 
 
 ## 13.54
 
 > 如果我们未`HasPtr`定义了移动赋值运算符，但未改变拷贝并交换运算符，会发生什么？编写代码验证你的答案。
 
-
+这道题没有看懂，`未改变拷贝并交换运算符`是什么意思？
 
 ## 13.55
 
 > 为你的`StrBlob`添加一个右值引用版本的`psh_back`。
+
+头文件见`ex13_26.h`
+
+```c++
+//
+// Created by wangheng on 2020/5/4.
+//
+
+#include <iostream>
+#include "ex13_26.h"
+
+int main() {
+    StrBlob sb;
+    std::string s("china");
+    sb.push_back(s);    // 调用push_back(const std::string&)
+    sb.push_back(std::move(s));     // 调用push_back(std::string&&)
+    std::cout << sb.front() << '\t' << sb.back() << std::endl;
+
+    return 0;
+}
+```
 
 
 
@@ -2936,7 +2966,7 @@ int main() {
 > }
 > ```
 
-
+会产生递归并最终溢出。
 
 ## 13.57
 
@@ -2946,9 +2976,58 @@ int main() {
 > Foo Foo::sorted() const & { return Foo(*this).sorted(); }
 > ```
 
-
+没问题，会调用移动版本。
 
 ## 13.58
 
 > 编写新版本的`Foo`类，其`sorted`函数中有打印语句，测试这个类，来验证你对前两题的答案是否正确。
+
+```c++
+//
+// Created by wangheng on 2020/5/4.
+//
+
+#include <vector>
+#include <iostream>
+#include <algorithm>
+
+using std::vector; using std::sort;
+
+class Foo
+{
+public:
+    Foo sorted() && ;
+    Foo sorted() const &;
+private:
+    vector<int> data;
+};
+
+Foo Foo::sorted() && {
+    sort(data.begin(), data.end());
+    std::cout << "&&" << std::endl; // debug
+    return *this;
+}
+
+Foo Foo::sorted() const &
+{
+    //    Foo ret(*this);
+    //    sort(ret.data.begin(), ret.data.end());
+    //    return ret;
+
+    std::cout << "const &" << std::endl; // debug
+
+    //    Foo ret(*this);
+    //    ret.sorted();     // Exercise 13.56
+    //    return ret;
+
+    return Foo(*this).sorted(); // Exercise 13.57
+}
+
+int main()
+{
+    Foo().sorted(); // call "&&"
+    Foo f;
+    f.sorted(); // call "const &"
+}
+```
 
