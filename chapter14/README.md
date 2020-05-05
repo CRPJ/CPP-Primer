@@ -159,5 +159,93 @@ int main() {
 
 `Book`需要定义重载的运算符。
 
-[h](./ex14_05_h)|[cpp](./ex14_05.cpp)|[test](./ex14_05_main.cpp)
+[h](./ex14_05.h)|[cpp](./ex14_05.cpp)|[test](./ex14_05_main.cpp)
+
+book.h
+
+```c++
+//
+// Created by wangheng on 2020/5/5.
+//
+
+#ifndef CPP_PRIMER_EX14_05_H
+#define CPP_PRIMER_EX14_05_H
+
+#include <iostream>
+#include <string>
+
+class Book {
+    friend std::istream& operator>>(std::istream&, Book&);
+    friend std::ostream& operator<<(std::ostream&, const Book&);
+    friend bool operator==(const Book&, const Book&);
+    friend bool operator!=(const Book&, const Book&);
+
+public:
+    Book() = default;
+    Book(unsigned no, std::string name, std::string author, std::string pubDate) :
+        no(no), name(name), author(author), pubDate(pubDate) {}
+    Book(std::istream& in) {in >> *this;}
+
+private:
+    unsigned no;
+    std::string name;
+    std::string author;
+    std::string pubDate;
+};
+
+std::istream& operator>>(std::istream&, Book&);
+std::ostream& operator<<(std::ostream&, const Book&);
+bool operator==(const Book&, const Book&);
+bool operator!=(const Book&, const  Book&);
+
+#endif //CPP_PRIMER_EX14_05_H
+
+```
+
+book.cpp
+```c++
+//
+// Created by wangheng on 2020/5/5.
+//
+
+#include "ex14_05.h"
+
+std::istream& operator>>(std::istream& in, Book& book) {
+    in >> book.no >> book.name >> book.author >> book.pubDate;
+    return in;
+}
+std::ostream& operator<<(std::ostream& os, const Book& book) {
+    os << book.no << ' ' << book.name << ' ' << book.author << ' ' << book.pubDate;
+    return os;
+}
+bool operator==(const Book& lhs, const Book& rhs) {
+    return lhs.no == rhs.no;
+}
+bool operator!=(const Book& lhs, const  Book& rhs) {
+    return !(lhs.no == rhs.no);
+}
+```
+
+main.cpp
+
+```c++
+//
+// Created by wangheng on 2020/5/5.
+//
+
+#include "ex14_05.h"
+
+int main() {
+    Book book1(123, "Journey to the West", "Chengen Wu", "Ming dynasty");
+    Book book2(123, "西游记", "吴承恩", "明朝");
+    std::cout << book1 << ' ' << book2 << std::endl;
+    std::cout << std::boolalpha << (book1 == book2) << std::endl;
+    Book book3(std::cin);
+    std::cout << (book2 == book3) << std::endl;
+
+    return 0;
+}
+```
+
+
 
