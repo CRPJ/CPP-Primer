@@ -5,11 +5,13 @@
 #ifndef CPP_PRIMER_EX13_44_H
 #define CPP_PRIMER_EX13_44_H
 
+#include <iostream>
 #include <memory>
 #include <cstring>
 #include <algorithm>
 
 class String {
+    friend std::ostream& operator<<(std::ostream&, const String&);
 public:
     String() : elements(nullptr), cap(nullptr) {}
     String(const char*);
@@ -21,7 +23,7 @@ public:
     char operator[](std::size_t) const ;
     char front() const { return *elements; }
     char back() const { return *(cap - 1);}
-    const char *c_str();
+    const char *c_str() const ;
     std::size_t size() const { return cap - elements; }
     char *begin() const { return elements; }
     char *end() const { return cap; }
@@ -86,7 +88,7 @@ void String::free() {
     }
 }
 
-const char* String::c_str() {
+const char* String::c_str() const {
     return elements;
 }
 
@@ -97,6 +99,11 @@ char String::operator[](std::size_t i) const {
 std::pair<char*, char*> String::alloc_n_copy(const char *b, const char *e) {
     auto data = alloc.allocate(e - b);
     return {data, std::uninitialized_copy(b, e, data)};
+}
+
+std::ostream& operator<<(std::ostream& os, const String& s) {
+    os << s.c_str();
+    return os;
 }
 
 #endif //CPP_PRIMER_EX13_44_H

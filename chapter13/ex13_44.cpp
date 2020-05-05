@@ -16,5 +16,6 @@ int main() {
     std::cout << str2.c_str() << std::endl;
     String str3;
     str3 = str2;
+    std::cout << str2 << std::endl;
     return 0;
 }
