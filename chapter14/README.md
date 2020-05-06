@@ -451,3 +451,15 @@ int main() {
 }
 ```
 
+## 14.16
+
+>  为你的 `StrBlob` 类、`StrBlobPtr` 类、`StrVec` 类和 `String` 类分别定义相等运算符和不相等运算符。 
+
+`StrBlob`|[h](../chapter12/ex12_19.h)|[cpp](../chapter12/ex12_19.cpp)
+
+`StrBlobPtr`|[h](../chapter12/ex12_19.h)|[cpp](../chapter12/ex12_19.cpp)
+
+`StrVec`|[h](../chapter13/ex13_43.h)|[cpp](../chapter13/ex13_43.cpp)
+
+`String`|[h](../chapter13/ex13_44.h)|[cpp](../chapter13/ex13_44.cpp)
+
