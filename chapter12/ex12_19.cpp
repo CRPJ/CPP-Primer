@@ -21,5 +21,9 @@ int main() {
     std::cout << (blobptr + 4).dref() << std::endl;
     std::cout << (blobptr - 2).dref() << std::endl;
 
+    std::cout << *(blobptr -2) << std::endl;
+    // ->运算符返回一个string的指针,capacity函数是string的成员函数
+    std::cout << blobptr->capacity() << std::endl;
+
     return 0;
 }

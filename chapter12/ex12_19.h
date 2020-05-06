@@ -122,6 +122,8 @@ public:
     StrBlobPtr operator--(int); // 后置递减运算符
     StrBlobPtr operator+(int);   // 指针加法
     StrBlobPtr operator-(int);   // 指针减法
+    std::string& operator*() const ;
+    std::string* operator->() const ;
 
 private:
     // 若检查成功，check返回一个指向vector的shared_ptr
@@ -205,6 +207,15 @@ StrBlobPtr StrBlobPtr::operator-(int n) {
     curr -= n;
     check(curr, "decrement past begin of StrBlobPtr");
     return *this;
+}
+
+std::string& StrBlobPtr::operator*() const {
+    auto p = check(curr, "dereference past end");
+    return (*p)[curr];
+}
+
+std::string* StrBlobPtr::operator->() const {
+    return &this->operator*();
 }
 
 bool operator==(const StrBlobPtr& lhs, const StrBlobPtr& rhs) {
