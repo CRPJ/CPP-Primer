@@ -5,6 +5,7 @@
 #ifndef CPP_PRIMER_EX13_43_H
 #define CPP_PRIMER_EX13_43_H
 
+#include <iostream>
 #include <memory>
 #include <string>
 #include <initializer_list>
@@ -14,6 +15,7 @@ class StrVec {
     friend bool operator==(const StrVec&, const StrVec&);
     friend bool operator!=(const StrVec&, const StrVec&);
     friend bool operator<(const StrVec&, const StrVec&);
+    friend std::ostream& operator<<(std::ostream&, const StrVec&);
 
 public:
     StrVec() :  // allocator成员进行默认初始化
@@ -23,6 +25,7 @@ public:
     StrVec& operator=(const StrVec&);   // 拷贝赋值运算符
     StrVec(StrVec&&) noexcept ;   // 移动构造函数
     StrVec& operator=(StrVec&&) noexcept ;    // 移动赋值运算符
+    StrVec& operator=(std::initializer_list<std::string>);  // 赋值运算符
     ~StrVec();  // 析构函数
     void push_back(const std::string&);   // 拷贝元素
     std::size_t size() const { return first_free - elements; }
@@ -94,6 +97,11 @@ StrVec& StrVec::operator=(StrVec &&rhs) noexcept {
         rhs.elements = rhs.first_free = rhs.cap = nullptr;
     }
     std::cout << "operator=(StrVec&&)" << std::endl;
+    return *this;
+}
+
+StrVec& StrVec::operator=(std::initializer_list<std::string> il) {
+    *this = StrVec(std::move(il));
     return *this;
 }
 
@@ -189,6 +197,12 @@ bool operator<(const StrVec& lhs, const StrVec& rhs) {
             return false;
     }
     return false;
+}
+
+std::ostream& operator<<(std::ostream& os, const StrVec& rhs) {
+    for (auto iter = rhs.begin(); iter != rhs.end(); ++iter)
+        os << *iter << ' ';
+    return os;
 }
 
 #endif //CPP_PRIMER_EX13_43_H

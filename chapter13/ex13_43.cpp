@@ -19,5 +19,8 @@ int main() {
     std::cout << std::boolalpha << (sv == sv1) << std::endl;
     std::cout << (sv < sv1) << std::endl;
 
+    sv1 = {"good", "high"};
+    std::cout << sv1 << std::endl;
+
     return 0;
 }
