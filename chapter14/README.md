@@ -3,7 +3,7 @@
 | [14.01](#1401) | [14.02](#1402hcpp) | [14.03](#1403) | [14.04](#1404) | [14.05](#1405) | [14.06](#1406hcpp) |
 | :------------: | :------------: | :--: | :--: | :--: | :--: |
 | [14.07](#1407hcpp) | [14.08](#1408hcpp) | [14.09](#1409hcpp) | [14.10](#1410) | [14.11](#1411) | [14.12](#1412hcpp) |
-|                |                |      |      |      |      |
+| [14.13](#1413hcpp) | [14.14](#1414) | [14.15](#1415hcpptest) |      |      |      |
 |                |                |      |      |      |      |
 |                |                |      |      |      |      |
 |                |                |      |      |      |      |
@@ -303,4 +303,151 @@ int main() {
 ## 14.12|[h](./ex14_05.h)|[cpp](./ex14_05.cpp)
 
 >  你在7.5.1节的练习中曾经选择并编写了一个类，为它定义一个输入运算符并确保该运算符可以处理输入错误。 
+
+## 14.13|[h](./ex14_02.h)|[cpp](./ex14_02.cpp)
+
+>  你认为 Sales_data 类还应该支持哪些其他算术运算符？如果有的话，请给出它们的定义。 
+
+`Sales_data`可以重载`-`、`-=`运算符。具体实现见练习14.02的代码。
+
+## 14.14
+
+>  你觉得为什么调用 operator+= 来定义operator+ 比其他方法更有效？ 
+
+ 因为用 `operator+=` 会避免使用一个临时对象，而使得更有效。 
+
+## 14.15|[h](./ex14_15.h)|[cpp](./ex14_15.cpp)|[test](./ex14_15_main.cpp)
+
+>  你在7.5.1节的练习7.40中曾经选择并编写了一个类，你认为它应该含有其他算术运算符吗？如果是，请实现它们；如果不是，解释原因。 
+
+可以给`Book`类添加`<`、`>`、`+`、`-`重载运算符。
+
+`Book.h`
+
+```c++
+//
+// Created by wangheng on 2020/5/6.
+//
+
+#ifndef CPP_PRIMER_EX14_15_H
+#define CPP_PRIMER_EX14_15_H
+
+#include <iostream>
+#include <string>
+
+class Book {
+    friend std::istream& operator>>(std::istream&, Book&);
+    friend std::ostream& operator<<(std::ostream&, const Book&);
+    friend bool operator==(const Book&, const Book&);
+    friend bool operator!=(const Book&, const Book&);
+    friend bool operator<(const Book&, const Book&);
+    friend bool operator>(const Book&, const Book&);
+    friend Book operator+(const Book&, const Book&);
+    friend Book operator-(const Book&, const Book&);
+
+public:
+    Book() = default;
+    Book(unsigned no, std::string name, std::string author, std::string pubDate, unsigned number) :
+            no(no), name(name), author(author), pubDate(pubDate), number(number) {}
+    Book(std::istream& in) {in >> *this;}
+    Book& operator+=(const Book&);
+    Book& operator-=(const Book&);
+
+private:
+    unsigned no;
+    std::string name;
+    std::string author;
+    std::string pubDate;
+    unsigned number = 0;
+};
+
+std::istream& operator>>(std::istream&, Book&);
+std::ostream& operator<<(std::ostream&, const Book&);
+bool operator==(const Book&, const Book&);
+bool operator!=(const Book&, const  Book&);
+bool operator<(const Book&, const Book&);
+bool operator>(const Book&, const Book&);
+Book operator+(const Book&, const Book&);
+Book operator-(const Book&, const Book&);
+
+#endif //CPP_PRIMER_EX14_15_H
+
+```
+
+`Book.cpp`
+
+```c++
+//
+// Created by wangheng on 2020/5/6.
+//
+
+#include "ex14_15.h"
+
+Book& Book::operator+=(const Book &rhs) {
+    number += rhs.number;
+    return *this;
+}
+
+Book& Book::operator-=(const Book &rhs) {
+    number -= rhs.number;
+    return *this;
+}
+
+std::istream& operator>>(std::istream& in, Book& book) {
+    in >> book.no >> book.name >> book.author >> book.pubDate >> book.number;
+    if (!in)
+        book = Book();
+    return in;
+}
+std::ostream& operator<<(std::ostream& os, const Book& book) {
+    os << book.no << ' ' << book.name << ' ' << book.author << ' ' << book.pubDate << ' ' << book.number;
+    return os;
+}
+bool operator==(const Book& lhs, const Book& rhs) {
+    return lhs.no == rhs.no;
+}
+bool operator!=(const Book& lhs, const  Book& rhs) {
+    return !(lhs.no == rhs.no);
+}
+
+bool operator<(const Book& lhs, const Book& rhs) {
+    return lhs.no < rhs.no;
+}
+bool operator>(const Book&lhs, const Book& rhs) {
+    return lhs.no > rhs.no;
+}
+Book operator+(const Book& lhs, const Book& rhs) {
+    Book result = lhs;
+    result += rhs;
+    return result;
+}
+Book operator-(const Book& lhs, const Book& rhs) {
+    Book result = lhs;
+    result -= rhs;
+    return result;
+}
+```
+
+`main.cpp`
+
+```c++
+//
+// Created by wangheng on 2020/5/6.
+//
+
+#include <iostream>
+#include "ex14_15.h"
+
+int main() {
+    Book book1(123, "Journey to the West", "Chengen Wu", "Ming dynasty", 2);
+    Book book2(123, "西游记", "吴承恩", "明朝", 3);
+    std::cout << book1 << ' ' << book2 << std::endl;
+    std::cout << std::boolalpha << (book1 == book2) << std::endl;
+    Book book3(std::cin);
+    std::cout << (book2 == book3) << std::endl;
+    std::cout << (book1 + book2) << std::endl;
+
+    return 0;
+}
+```
 
