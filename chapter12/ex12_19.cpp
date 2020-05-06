@@ -13,6 +13,7 @@ int main() {
     std::cout << std::boolalpha << (blob == blob1) << std::endl;
     std::cout << (blob < blob1) << std::endl;
     std::cout << blob[1] << std::endl;
+    std::cout << blobptr[1] << std::endl;
 
     return 0;
 }

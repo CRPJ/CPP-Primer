@@ -113,6 +113,8 @@ public:
     bool operator!=(const StrBlobPtr& p) { return p.curr != this->curr; }
     std::string &dref() const ;
     StrBlobPtr& incr();     // 递增前缀
+    std::string& operator[](std::size_t n);
+    const std::string& operator[](std::size_t n) const ;
 private:
     // 若检查成功，check返回一个指向vector的shared_ptr
     std::shared_ptr<std::vector<std::string>>
@@ -151,6 +153,14 @@ StrBlobPtr StrBlob::begin(){
 StrBlobPtr StrBlob::end(){
     auto ret = StrBlobPtr(*this, data->size());
     return ret;
+}
+
+std::string& StrBlobPtr::operator[](std::size_t n) {
+    return (*wptr.lock())[n];
+}
+
+const std::string& StrBlobPtr::operator[](std::size_t n) const {
+    return (*wptr.lock())[n];
 }
 
 bool operator==(const StrBlobPtr& lhs, const StrBlobPtr& rhs) {
