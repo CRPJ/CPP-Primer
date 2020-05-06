@@ -12,6 +12,9 @@
 
 class String {
     friend std::ostream& operator<<(std::ostream&, const String&);
+    friend bool operator==(const String&, const String&);
+    friend bool operator!=(const String&, const String&);
+
 public:
     String() : elements(nullptr), cap(nullptr) {}
     String(const char*);
@@ -104,6 +107,23 @@ std::pair<char*, char*> String::alloc_n_copy(const char *b, const char *e) {
 std::ostream& operator<<(std::ostream& os, const String& s) {
     os << s.c_str();
     return os;
+}
+
+bool operator==(const String& lhs, const String& rhs) {
+    if (lhs.size() != rhs.size())
+        return false;
+    else {
+        auto p = rhs.elements;
+        for (auto iter = lhs.begin(); iter != lhs.end(); ++iter) {
+            if (*iter != *p++)
+                return false;
+        }
+    }
+    return true;
+}
+
+bool operator!=(const String& lhs, const String& rhs) {
+    return !(lhs == rhs);
 }
 
 #endif //CPP_PRIMER_EX13_44_H

@@ -11,11 +11,12 @@ int main() {
         std::cout << *iter << '\t';
     std::cout << std::endl;
     std::cout << str.c_str() << std::endl;
-    std::cout << str.front() << '\t' << str.back() << '\t' << str[1] << std::endl;
     String str2(str);
     std::cout << str2.c_str() << std::endl;
     String str3;
     str3 = str2;
     std::cout << str2 << std::endl;
+    str3 = "good";
+    std::cout << std::boolalpha << (str == str2) << ' ' << (str2 == str3) << std::endl;
     return 0;
 }
