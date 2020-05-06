@@ -5,8 +5,8 @@
 | [14.07](#1407hcpp) | [14.08](#1408hcpp) | [14.09](#1409hcpp) | [14.10](#1410) | [14.11](#1411) | [14.12](#1412hcpp) |
 | [14.13](#1413hcpp) | [14.14](#1414) | [14.15](#1415hcpptest) | [14.16](#1416) | [14.17](#1417) | [14.18](#1418) |
 | [14.19](#1419) | [14.20](#1420) | [14.21](#1421) | [14.22](#1422hcpp) | [14.23](#1423hcpp) | [14.24](#1424) |
-| [14.25](#1425) | [14.26](#1426) | [14.27](#1427hcpp) | [14.28](#1428hcpp) | [14.29](#1429) |      |
-|                |                |      |      |      |      |
+| [14.25](#1425) | [14.26](#1426) | [14.27](#1427hcpp) | [14.28](#1428hcpp) | [14.29](#1429) | [14.30](#1430) |
+| [14.31](#1431) | [14.32](#1432) |      |      |      |      |
 |                |                |      |      |      |      |
 |                |                |      |      |      |      |
 |                |                |      |      |      |      |
@@ -548,3 +548,39 @@ int main() {
 >  为什么不定义`const` 版本的递增和递减运算符？ 
 
 因为递增和递减会改变对象本身，所以不能定义`const`版本的递增递减运算符。
+
+## 14.30
+
+>  为你的 `StrBlobPtr` 类和在12.1.6节练习12.22中定义的 `ConstStrBlobPtr` 的类分别添加解引用运算符和箭头运算符。注意：因为 `ConstStrBlobPtr` 的数据成员指向`const vector`，所以`ConstStrBlobPtr` 中的运算符必须返回常量引用。 
+
+`StrBlobPtr`|[h](../chapter12/ex12_19.h)|[cpp](../chapter12/ex12_19.cpp)
+
+`ConstStrBlobPtr`|[h](..chapter12/ex12_22.h)|[cpp](../chapter12/ex12_22.cpp)
+
+## 14.31
+
+>  我们的 `StrBlobPtr` 类没有定义拷贝构造函数、赋值运算符以及析构函数，为什么？ 
+
+因为合成的默认版本足够满足要求。
+
+## 14.32
+
+>  定义一个类令其含有指向 `StrBlobPtr` 对象的指针，为这个类定义重载的箭头运算符。 
+
+```c++
+class StrBlobPtr;
+
+class StrBlobPtr_pointer
+{
+public:
+    StrBlobPtr_pointer() = default;
+    StrBlobPtr_pointer(StrBlobPtr* p) : pointer(p) { }
+
+    StrBlobPtr& operator *();
+    StrBlobPtr* operator->();
+
+private:
+    StrBlobPtr* pointer = nullptr;
+};
+```
+
