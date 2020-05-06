@@ -6,7 +6,7 @@
 #include "ex12_19.h"
 
 int main() {
-    StrBlob blob = {"an", "the"};
+    StrBlob blob = {"an", "the", "good", "high", "low"};
     StrBlobPtr blobptr(blob);
     std::cout << blobptr.dref() << std::endl;
     StrBlob blob1 = {"an", "zoom"};
@@ -18,6 +18,8 @@ int main() {
     std::cout << (++blobptr).dref() << std::endl;
     std::cout << blobptr--.dref() << std::endl;
     std::cout << blobptr.dref() << std::endl;
+    std::cout << (blobptr + 4).dref() << std::endl;
+    std::cout << (blobptr - 2).dref() << std::endl;
 
     return 0;
 }

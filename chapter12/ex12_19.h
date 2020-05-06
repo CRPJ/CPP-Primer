@@ -105,6 +105,7 @@ class StrBlobPtr {
     friend bool operator==(const StrBlobPtr&, const StrBlobPtr&);
     friend bool operator!=(const StrBlobPtr&, const StrBlobPtr&);
     friend bool operator<(const StrBlobPtr&, const StrBlobPtr&);
+
 public:
     using size_t = std::vector<std::string>::size_type;
     StrBlobPtr() : curr(0) {}
@@ -119,6 +120,9 @@ public:
     StrBlobPtr operator++(int); // 后置递增运算符
     StrBlobPtr& operator--();   // 前置递减运算符
     StrBlobPtr operator--(int); // 后置递减运算符
+    StrBlobPtr operator+(int);   // 指针加法
+    StrBlobPtr operator-(int);   // 指针减法
+
 private:
     // 若检查成功，check返回一个指向vector的shared_ptr
     std::shared_ptr<std::vector<std::string>>
@@ -189,6 +193,18 @@ StrBlobPtr StrBlobPtr::operator--(int) {
     StrBlobPtr ret = *this;
     --*this;
     return ret;
+}
+
+StrBlobPtr StrBlobPtr::operator+(int n) {
+    curr += n;
+    check(curr, "increment past end of StrBlobPtr");
+    return *this;
+}
+
+StrBlobPtr StrBlobPtr::operator-(int n) {
+    curr -= n;
+    check(curr, "decrement past begin of StrBlobPtr");
+    return *this;
 }
 
 bool operator==(const StrBlobPtr& lhs, const StrBlobPtr& rhs) {
