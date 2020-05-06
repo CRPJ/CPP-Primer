@@ -11,6 +11,8 @@
 #include <algorithm>
 
 class StrVec {
+    friend bool operator==(const StrVec&, const StrVec&);
+    friend bool operator!=(const StrVec&, const StrVec&);
 public:
     StrVec() :  // allocator成员进行默认初始化
             elements(nullptr), first_free(nullptr), cap(nullptr) {}
@@ -158,6 +160,22 @@ void StrVec::resize(std::size_t n) {
         for (std::size_t i = 0; i < len; ++i)
             alloc.construct(first_free++, std::string());
     }
+}
+
+bool operator==(const StrVec& lhs, const StrVec& rhs) {
+    if (lhs.size() != rhs.size())
+        return false;
+    else {
+        auto p = rhs.elements;
+        for (auto iter = lhs.begin(); iter != lhs.end(); ++iter) {
+            if (*iter != *p++)
+                return false;
+        }
+    }
+    return true;
+}
+bool operator!=(const StrVec& lhs, const StrVec& rhs) {
+    return !(lhs == rhs);
 }
 
 #endif //CPP_PRIMER_EX13_43_H

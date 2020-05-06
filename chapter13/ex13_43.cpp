@@ -14,5 +14,9 @@ int main() {
     for (auto iter = sv.begin(); iter != sv.end(); ++iter)
         std::cout << *iter << std::endl;
     std::cout << sv.capacity() << std::endl;
+    StrVec sv1({"hello", "world", "good", "china", "amazing"});
+    sv1.resize(6);
+    std::cout << std::boolalpha << (sv != sv1) << std::endl;
+
     return 0;
 }
