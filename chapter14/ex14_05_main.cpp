@@ -11,6 +11,7 @@ int main() {
     std::cout << std::boolalpha << (book1 == book2) << std::endl;
     Book book3(std::cin);
     std::cout << (book2 == book3) << std::endl;
+    std::cout << (book2 < book3) << std::endl;
 
     return 0;
 }

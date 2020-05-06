@@ -13,6 +13,7 @@ class Book {
     friend std::ostream& operator<<(std::ostream&, const Book&);
     friend bool operator==(const Book&, const Book&);
     friend bool operator!=(const Book&, const Book&);
+    friend bool operator<(const Book&, const Book&);
 
 public:
     Book() = default;
@@ -31,5 +32,6 @@ std::istream& operator>>(std::istream&, Book&);
 std::ostream& operator<<(std::ostream&, const Book&);
 bool operator==(const Book&, const Book&);
 bool operator!=(const Book&, const  Book&);
+bool operator<(const Book&, const Book&);
 
 #endif //CPP_PRIMER_EX14_05_H

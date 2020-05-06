@@ -18,5 +18,9 @@ bool operator==(const Book& lhs, const Book& rhs) {
     return lhs.no == rhs.no;
 }
 bool operator!=(const Book& lhs, const  Book& rhs) {
-    return !(lhs.no == rhs.no);
+    return lhs.no != rhs.no;
+}
+
+bool operator<(const Book& lhs, const Book& rhs) {
+    return lhs.no < rhs.no;
 }
