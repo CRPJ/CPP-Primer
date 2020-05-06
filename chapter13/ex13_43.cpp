@@ -21,6 +21,7 @@ int main() {
 
     sv1 = {"good", "high"};
     std::cout << sv1 << std::endl;
+    std::cout << sv1[0] << std::endl;
 
     return 0;
 }

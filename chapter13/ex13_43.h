@@ -34,6 +34,8 @@ public:
     std::string *end() const { return first_free; }
     void reserve(std::size_t);
     void resize(std::size_t);
+    std::string& operator[](const std::size_t n);
+    const std::string& operator[](const std::size_t n) const ;
 
 private:
     static std::allocator<std::string> alloc;   // 分配元素
@@ -170,6 +172,14 @@ void StrVec::resize(std::size_t n) {
         for (std::size_t i = 0; i < len; ++i)
             alloc.construct(first_free++, std::string());
     }
+}
+
+std::string& StrVec::operator[](const std::size_t n) {
+    return elements[n];
+}
+
+const std::string& StrVec::operator[](const std::size_t n) const {
+    return elements[n];
 }
 
 bool operator==(const StrVec& lhs, const StrVec& rhs) {
