@@ -24,6 +24,7 @@ public:
     Sales_data& operator+=(const Sales_data&);  // 复合运算符
     Sales_data& operator-=(const Sales_data&);  // 符合运算符
     std::string isbn() const {return bookNo;}
+    Sales_data& operator=(const std::string&);
 
 private:
     inline double avg_price() const ;
