@@ -13,6 +13,8 @@
 class StrVec {
     friend bool operator==(const StrVec&, const StrVec&);
     friend bool operator!=(const StrVec&, const StrVec&);
+    friend bool operator<(const StrVec&, const StrVec&);
+
 public:
     StrVec() :  // allocator成员进行默认初始化
             elements(nullptr), first_free(nullptr), cap(nullptr) {}
@@ -176,6 +178,15 @@ bool operator==(const StrVec& lhs, const StrVec& rhs) {
 }
 bool operator!=(const StrVec& lhs, const StrVec& rhs) {
     return !(lhs == rhs);
+}
+
+bool operator<(const StrVec& lhs, const StrVec& rhs) {
+    auto p = rhs.elements;
+    for (auto iter = lhs.begin(); iter != lhs.end(); ++iter) {
+        if (*iter < *p++)
+            return true;
+    }
+    return false;
 }
 
 #endif //CPP_PRIMER_EX13_43_H
