@@ -23,6 +23,10 @@ public:
     Book(unsigned no, std::string name, std::string author, std::string pubDate, unsigned number) :
             no(no), name(name), author(author), pubDate(pubDate), number(number) {}
     Book(std::istream& in) {in >> *this;}
+    Book(const Book&);
+    Book(Book&&) noexcept ;
+    Book& operator=(const Book&);
+    Book& operator=(Book&&) noexcept ;
     Book& operator+=(const Book&);
     Book& operator-=(const Book&);
 
