@@ -14,6 +14,10 @@ int main() {
     std::cout << (blob < blob1) << std::endl;
     std::cout << blob[1] << std::endl;
     std::cout << blobptr[1] << std::endl;
+    std::cout << blobptr.dref() << std::endl;
+    std::cout << (++blobptr).dref() << std::endl;
+    std::cout << blobptr--.dref() << std::endl;
+    std::cout << blobptr.dref() << std::endl;
 
     return 0;
 }

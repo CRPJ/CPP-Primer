@@ -115,6 +115,10 @@ public:
     StrBlobPtr& incr();     // 递增前缀
     std::string& operator[](std::size_t n);
     const std::string& operator[](std::size_t n) const ;
+    StrBlobPtr& operator++();   // 前置递增运算符
+    StrBlobPtr operator++(int); // 后置递增运算符
+    StrBlobPtr& operator--();   // 前置递减运算符
+    StrBlobPtr operator--(int); // 后置递减运算符
 private:
     // 若检查成功，check返回一个指向vector的shared_ptr
     std::shared_ptr<std::vector<std::string>>
@@ -161,6 +165,30 @@ std::string& StrBlobPtr::operator[](std::size_t n) {
 
 const std::string& StrBlobPtr::operator[](std::size_t n) const {
     return (*wptr.lock())[n];
+}
+
+StrBlobPtr& StrBlobPtr::operator++() {
+    check(curr, "increment past end of StrBlobPtr");
+    ++curr;
+    return *this;
+}
+
+StrBlobPtr StrBlobPtr::operator++(int) {
+    StrBlobPtr ret = *this;
+    ++*this;
+    return ret;
+}
+
+StrBlobPtr& StrBlobPtr::operator--() {
+    --curr;
+    check(curr, "decrement past begin of StrBlobPtr");
+    return *this;
+}
+
+StrBlobPtr StrBlobPtr::operator--(int) {
+    StrBlobPtr ret = *this;
+    --*this;
+    return ret;
 }
 
 bool operator==(const StrBlobPtr& lhs, const StrBlobPtr& rhs) {
