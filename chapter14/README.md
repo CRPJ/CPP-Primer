@@ -518,3 +518,18 @@ int main() {
 >  上题的这个类还需要定义其他赋值运算符吗？如果是，请实现它们；同时说明运算对象应该是什么类型并解释原因。 
 
 是，如上题。
+
+## 14.26
+
+> 为你的 `StrBlob` 类、`StrBlobPtr` 类、`StrVec` 类和 `String` 类定义下标运算符。
+
+`StrBlob`|[h](../chapter12/ex12_19.h)|[cpp](../chapter12/ex12_19.cpp)
+
+`StrBlobPtr`|[h](../chapter12/ex12_19.h)|[cpp](../chapter12/ex12_19.cpp)
+
+`StrVec`|[h](../chapter13/ex13_43.h)|[cpp](../chapter13/ex13_43.cpp)
+
+`String`|[h](../chapter13/ex13_44.h)|[cpp](../chapter13/ex13_44.cpp)
+
+## 14.27
+
