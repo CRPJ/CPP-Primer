@@ -19,6 +19,7 @@ int main() {
     str3 = "apple";
     std::cout << std::boolalpha << (str == str2) << ' ' << (str2 == str3) << std::endl;
     std::cout << (str < str3) << std::endl;
+    std::cout << str3[3] << std::endl;
 
     return 0;
 }

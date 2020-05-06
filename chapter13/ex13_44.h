@@ -25,13 +25,14 @@ public:
     String(String&&) noexcept ;
     String& operator=(String&&) noexcept ;
     ~String();
-    char operator[](std::size_t) const ;
+    const char& operator[](std::size_t) const ;
     char front() const { return *elements; }
     char back() const { return *(cap - 1);}
     const char *c_str() const ;
     std::size_t size() const { return cap - elements; }
     char *begin() const { return elements; }
     char *end() const { return cap; }
+    char& operator[](const std::size_t n);
 
 private:
     static std::allocator<char> alloc;
@@ -97,8 +98,12 @@ const char* String::c_str() const {
     return elements;
 }
 
-char String::operator[](std::size_t i) const {
-    return *(elements+i);
+const char& String::operator[](std::size_t i) const {
+    return *(elements + i);
+}
+
+char& String::operator[](const std::size_t n) {
+    return *(elements + n);
 }
 
 std::pair<char*, char*> String::alloc_n_copy(const char *b, const char *e) {
