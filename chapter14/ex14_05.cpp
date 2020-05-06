@@ -6,6 +6,8 @@
 
 std::istream& operator>>(std::istream& in, Book& book) {
     in >> book.no >> book.name >> book.author >> book.pubDate;
+    if (!in)
+        book = Book();
     return in;
 }
 std::ostream& operator<<(std::ostream& os, const Book& book) {
