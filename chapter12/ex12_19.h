@@ -36,6 +36,9 @@ public:
     StrBlobPtr begin();
     StrBlobPtr end();
     int count() { return data.use_count(); }
+    std::string& operator[](std::size_t n);
+    const std::string& operator[](std::size_t n) const ;
+
 private:
     std::shared_ptr<std::vector<std::string>> data;
     // 如果data[i]不合法，抛出异常
@@ -76,6 +79,14 @@ std::string &StrBlob::back() {
 std::string &StrBlob::back() const {
     check(0, "back on empty StrBlob");
     return data->back();
+}
+
+std::string& StrBlob::operator[](std::size_t n) {
+    return (*data)[n];
+}
+
+const std::string& StrBlob::operator[](std::size_t n) const {
+    return (*data)[n];
 }
 
 bool operator==(const StrBlob& lhs, const StrBlob& rhs) {

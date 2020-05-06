@@ -12,6 +12,7 @@ int main() {
     StrBlob blob1 = {"an", "zoom"};
     std::cout << std::boolalpha << (blob == blob1) << std::endl;
     std::cout << (blob < blob1) << std::endl;
+    std::cout << blob[1] << std::endl;
 
     return 0;
 }
