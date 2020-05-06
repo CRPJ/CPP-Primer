@@ -503,7 +503,7 @@ int main() {
 
 > 定义赋值运算符的一个新版本，使得我们能把一个表示 ISBN 的 string 赋给一个 Sales_data 对象。
 
-## 14.23|[h](./ex14_43.h)|[cpp](./ex14_43.cpp)
+## 14.23|[h](../chapter13/ex13_43.h)|[cpp](../chapter13/ex13_43.cpp)
 
 > 为你的`StrVec` 类定义一个 `initializer_list` 赋值运算符。
 
