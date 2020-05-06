@@ -9,5 +9,7 @@ int main() {
     StrBlob blob = {"an", "the"};
     StrBlobPtr blobptr(blob);
     std::cout << blobptr.dref() << std::endl;
+    StrBlob blob1 = {"an", "zoom"};
+    std::cout << std::boolalpha << (blob != blob1) << std::endl;
     return 0;
 }

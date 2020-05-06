@@ -14,6 +14,8 @@
 class StrBlobPtr;
 
 class StrBlob {
+    friend bool operator==(const StrBlob&, const StrBlob&);
+    friend bool operator!=(const StrBlob&, const StrBlob&);
 public:
     friend class StrBlobPtr;
     typedef std::vector<std::string>::size_type size_type;
@@ -21,10 +23,10 @@ public:
     StrBlob(std::initializer_list<std::string> il);
     size_type size() const { return data->size(); }
     bool empty() const { return data->empty(); }
-    // Ìí¼ÓºÍÉ¾³ıÔªËØ
+    // æ·»åŠ å’Œåˆ é™¤å…ƒç´ 
     void push_back(const std::string &t) { data->push_back(t); }
     void pop_back();
-    // ÔªËØ·ÃÎÊ
+    // å…ƒç´ è®¿é—®
     std::string &front();
     std::string &front() const;
     std::string &back();
@@ -34,7 +36,7 @@ public:
     int count() { return data.use_count(); }
 private:
     std::shared_ptr<std::vector<std::string>> data;
-    // Èç¹ûdata[i]²»ºÏ·¨£¬Å×³öÒì³£
+    // å¦‚æœdata[i]ä¸åˆæ³•ï¼ŒæŠ›å‡ºå¼‚å¸¸
     void check(size_type i, const std::string &msg) const;
 };
 
@@ -74,22 +76,32 @@ std::string &StrBlob::back() const {
     return data->back();
 }
 
+bool operator==(const StrBlob& lhs, const StrBlob& rhs) {
+    return *lhs.data == *rhs.data;
+}
+
+bool operator!=(const StrBlob& lhs, const StrBlob& rhs) {
+    return *lhs.data != *rhs.data;
+}
+
 class StrBlobPtr {
+    friend bool operator==(const StrBlobPtr&, const StrBlobPtr&);
+    friend bool operator!=(const StrBlobPtr&, const StrBlobPtr&);
 public:
     using size_t = std::vector<std::string>::size_type;
     StrBlobPtr() : curr(0) {}
-    // Ê¹ÓÃStrBlobµÄÒıÓÃ±ÜÃâ¿½±´
+    // ä½¿ç”¨StrBlobçš„å¼•ç”¨é¿å…æ‹·è´
     StrBlobPtr(StrBlob& a, size_t sz = 0) : wptr(a.data), curr(sz) {}
     bool operator!=(const StrBlobPtr& p) { return p.curr != this->curr; }
     std::string &dref() const ;
-    StrBlobPtr& incr();     // µİÔöÇ°×º
+    StrBlobPtr& incr();     // é€’å¢å‰ç¼€
 private:
-    // Èô¼ì²é³É¹¦£¬check·µ»ØÒ»¸öÖ¸ÏòvectorµÄshared_ptr
+    // è‹¥æ£€æŸ¥æˆåŠŸï¼Œcheckè¿”å›ä¸€ä¸ªæŒ‡å‘vectorçš„shared_ptr
     std::shared_ptr<std::vector<std::string>>
         check(std::size_t, const std::string&) const;
-    // ±£´æÒ»¸öwaek_ptr£¬ÒâÎ¶×Åµ×²ãvector¿ÉÄÜ±»Ïú»Ù
+    // ä¿å­˜ä¸€ä¸ªwaek_ptrï¼Œæ„å‘³ç€åº•å±‚vectorå¯èƒ½è¢«é”€æ¯
     std::weak_ptr<std::vector<std::string>> wptr;
-    size_t curr;   // ÔÚÊı×éÖĞµ±Ç°µÄÎ»ÖÃ
+    size_t curr;   // åœ¨æ•°ç»„ä¸­å½“å‰çš„ä½ç½®
 };
 
 std::string& StrBlobPtr::dref() const {
@@ -98,7 +110,7 @@ std::string& StrBlobPtr::dref() const {
 }
 
 StrBlobPtr& StrBlobPtr::incr() {
-    // Èç¹ûcurrÒÑ¾­Ö¸ÏòÈİÆ÷µÄÎ²ºóÎ»ÖÃ£¬¾Í²»ÄÜµİÔöËü
+    // å¦‚æœcurrå·²ç»æŒ‡å‘å®¹å™¨çš„å°¾åä½ç½®ï¼Œå°±ä¸èƒ½é€’å¢å®ƒ
     check(curr, "increment past end of StrBlobPtr");
     ++curr;
     return *this;
@@ -121,6 +133,14 @@ StrBlobPtr StrBlob::begin(){
 StrBlobPtr StrBlob::end(){
     auto ret = StrBlobPtr(*this, data->size());
     return ret;
+}
+
+bool operator==(const StrBlobPtr& lhs, const StrBlobPtr& rhs) {
+    return *lhs.wptr.lock() == *rhs.wptr.lock();
+}
+
+bool operator!=(const StrBlobPtr& lhs, const StrBlobPtr& rhs) {
+    return *lhs.wptr.lock() != *rhs.wptr.lock();
 }
 
 #endif //CPP_PRIMER_EX12_19_H
