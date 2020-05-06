@@ -555,7 +555,7 @@ int main() {
 
 `StrBlobPtr`|[h](../chapter12/ex12_19.h)|[cpp](../chapter12/ex12_19.cpp)
 
-`ConstStrBlobPtr`|[h](..chapter12/ex12_22.h)|[cpp](../chapter12/ex12_22.cpp)
+`ConstStrBlobPtr`|[h](../chapter12/ex12_22.h)|[cpp](../chapter12/ex12_22.cpp)
 
 ## 14.31
 
