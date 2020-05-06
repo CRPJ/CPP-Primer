@@ -6,7 +6,7 @@
 #include "ex13_43.h"
 
 int main() {
-    StrVec sv({"hello", "world", "good", "china", "amazing"});
+    StrVec sv({"hello", "zoom", "good", "china", "amazing"});
     for (auto iter = sv.begin(); iter != sv.end(); ++iter)
         std::cout << *iter << std::endl;
     std::cout << std::endl;

@@ -185,6 +185,8 @@ bool operator<(const StrVec& lhs, const StrVec& rhs) {
     for (auto iter = lhs.begin(); iter != lhs.end(); ++iter) {
         if (*iter < *p++)
             return true;
+        else if (*iter > *p)
+            return false;
     }
     return false;
 }
