@@ -13,6 +13,7 @@ class Sales_data {
     friend std::istream& operator>>(std::istream&, Sales_data&);    // 输入
     friend std::ostream& operator<<(std::ostream&, Sales_data&);    // 输出
     friend Sales_data operator+(const Sales_data&, const Sales_data&);  // 加法
+    friend Sales_data operator-(const Sales_data&, const Sales_data&);  // 减法
 public:
     Sales_data(std::string  s, unsigned n, double p) :
         bookNo(std::move(s)), units_sold(n), revenue(n * p){}
@@ -21,6 +22,7 @@ public:
     Sales_data(std::istream& is);
 
     Sales_data& operator+=(const Sales_data&);  // 复合运算符
+    Sales_data& operator-=(const Sales_data&);  // 符合运算符
     std::string isbn() const {return bookNo;}
 
 private:
@@ -34,6 +36,7 @@ private:
 std::istream& operator>>(std::istream&, Sales_data&);
 std::ostream& operator<<(std::ostream&, Sales_data&);
 Sales_data operator+(const Sales_data&, const Sales_data&);
+Sales_data operator-(const Sales_data&, const Sales_data&);
 
 inline
 double Sales_data::avg_price() const {
