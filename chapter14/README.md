@@ -468,3 +468,22 @@ int main() {
 >  你在7.5.1节中的练习7.40中曾经选择并编写了一个类，你认为它应该含有相等运算符吗？如果是，请实现它；如果不是，解释原因。 
 
 应该有相等运算符，代码见练习14.05。[h](./ex14_05.h)|[cpp](./ex14_05.cpp)
+
+## 14.18
+
+>  为你的 `StrBlob` 类、`StrBlobPtr` 类、`StrVec` 类和 `String` 类分别定义关系运算符。 
+
+`StrBlob`|[h](../chapter12/ex12_19.h)|[cpp](../chapter12/ex12_19.cpp)
+
+`StrBlobPtr`|[h](../chapter12/ex12_19.h)|[cpp](../chapter12/ex12_19.cpp)
+
+`StrVec`|[h](../chapter13/ex13_43.h)|[cpp](../chapter13/ex13_43.cpp)
+
+`String`|[h](../chapter13/ex13_44.h)|[cpp](../chapter13/ex13_44.cpp)
+
+## 14.19
+
+>  你在7.5.1节的练习7.40中曾经选择并编写了一个类，你认为它应该含有关系运算符吗？如果是，请实现它；如果不是，解释原因。 
+
+应该有，代码见练习14.05。[h](./ex14_05.h)|[cpp](./ex14_05.cpp)
+
