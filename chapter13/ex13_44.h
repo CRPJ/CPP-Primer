@@ -9,11 +9,13 @@
 #include <memory>
 #include <cstring>
 #include <algorithm>
+#include <string>
 
 class String {
     friend std::ostream& operator<<(std::ostream&, const String&);
     friend bool operator==(const String&, const String&);
     friend bool operator!=(const String&, const String&);
+    friend bool operator<(const String&, const String&);
 
 public:
     String() : elements(nullptr), cap(nullptr) {}
@@ -124,6 +126,10 @@ bool operator==(const String& lhs, const String& rhs) {
 
 bool operator!=(const String& lhs, const String& rhs) {
     return !(lhs == rhs);
+}
+
+bool operator<(const String& lhs, const String& rhs) {
+    return std::string(lhs.c_str()) < std::string(rhs.c_str());
 }
 
 #endif //CPP_PRIMER_EX13_44_H

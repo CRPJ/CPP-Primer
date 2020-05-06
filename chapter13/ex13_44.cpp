@@ -16,7 +16,9 @@ int main() {
     String str3;
     str3 = str2;
     std::cout << str2 << std::endl;
-    str3 = "good";
+    str3 = "apple";
     std::cout << std::boolalpha << (str == str2) << ' ' << (str2 == str3) << std::endl;
+    std::cout << (str < str3) << std::endl;
+
     return 0;
 }
