@@ -16,6 +16,8 @@ class StrBlobPtr;
 class StrBlob {
     friend bool operator==(const StrBlob&, const StrBlob&);
     friend bool operator!=(const StrBlob&, const StrBlob&);
+    friend bool operator<(const StrBlob&, const StrBlob&);
+
 public:
     friend class StrBlobPtr;
     typedef std::vector<std::string>::size_type size_type;
@@ -84,9 +86,14 @@ bool operator!=(const StrBlob& lhs, const StrBlob& rhs) {
     return *lhs.data != *rhs.data;
 }
 
+bool operator<(const StrBlob& lhs, const StrBlob& rhs){
+    return *lhs.data < *rhs.data;
+}
+
 class StrBlobPtr {
     friend bool operator==(const StrBlobPtr&, const StrBlobPtr&);
     friend bool operator!=(const StrBlobPtr&, const StrBlobPtr&);
+    friend bool operator<(const StrBlobPtr&, const StrBlobPtr&);
 public:
     using size_t = std::vector<std::string>::size_type;
     StrBlobPtr() : curr(0) {}
@@ -141,6 +148,10 @@ bool operator==(const StrBlobPtr& lhs, const StrBlobPtr& rhs) {
 
 bool operator!=(const StrBlobPtr& lhs, const StrBlobPtr& rhs) {
     return *lhs.wptr.lock() != *rhs.wptr.lock();
+}
+
+bool operator<(const StrBlobPtr& lhs, const StrBlobPtr& rhs) {
+    return *lhs.wptr.lock() < *rhs.wptr.lock();
 }
 
 #endif //CPP_PRIMER_EX12_19_H
