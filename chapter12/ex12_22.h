@@ -85,6 +85,10 @@ public:
     bool operator!=(const ConstStrBlobPtr& p) { return p.curr != curr; }
     std::string &dref() const ;
     ConstStrBlobPtr& incr();     // 递增前缀
+
+    // ConstStrBlobPtr数据成员指向const vector，不能更改，所以返回值应该是const类型
+    const std::string& operator*() const ;
+    const std::string* operator->() const ;
 private:
     // 若检查成功，check返回一个指向vector的shared_ptr
     std::shared_ptr<std::vector<std::string>>
@@ -132,6 +136,15 @@ ConstStrBlobPtr StrBlob::cbegin() const {
 ConstStrBlobPtr StrBlob::cend() const {
     auto ret = ConstStrBlobPtr(*this, data->size());
     return ret;
+}
+
+const std::string& ConstStrBlobPtr::operator*() const {
+    auto p = check(curr, "dereference past end");
+    return (*p)[curr];
+}
+
+const std::string* ConstStrBlobPtr::operator->() const {
+    return &this->operator*();
 }
 
 #endif //CPP_PRIMER_EX12_22_H
