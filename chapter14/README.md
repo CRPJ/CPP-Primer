@@ -584,3 +584,132 @@ private:
 };
 ```
 
+## 14.33
+
+> 一个重载的函数调用运算符应该接受几个运算对象？
+
+一个重载的函数调用运算符接受的运算对象应该和该运算符拥有的操作数一样多。
+
+## 14.34
+
+> 定义一个函数对象类，令其执行if-then-else 的操作：该类的调用运算符接受三个形参，它首先检查第一个形参，如果成功返回第二个形参值；如果不成功返回第三个形参的值。
+
+```c++
+struct Test {
+    int operator()(bool flag, int a, int b) {
+        return flag ? a : b;
+    }
+};
+```
+
+## 14.35|[cpp](./ex14_35.cpp)
+
+> 编写一个类似于 `PrintString `的类，令其从 `istream` 中读取一行输入，然后返回一个表示我们所读内容的`string`。如果读取失败，返回空string。
+
+```c++
+//
+// Created by wangheng on 2020/5/7.
+//
+
+#include <iostream>
+#include <string>
+
+class PrintString {
+public:
+    PrintString(std::istream& is = std::cin) : is(is) {}
+    std::string operator()() const {
+        std::string str;
+        std::getline(is, str);
+        return is ? str : std::string();
+    }
+
+private:
+    std::istream& is;
+};
+
+int main() {
+    PrintString printer;
+    std::cout << printer() << std::endl;
+
+    return 0;
+}
+```
+
+## 14.36|[cpp](./ex14_36.cpp)
+
+> 使用前一个练习定义的类读取标准输入，将每一行保存为 vector 的一个元素。
+
+```c++
+//
+// Created by wangheng on 2020/5/7.
+//
+
+#include <iostream>
+#include <string>
+#include <vector>
+
+class PrintString {
+public:
+    PrintString(std::istream& is = std::cin) : is(is) {}
+    std::string operator()() const {
+        std::string str;
+        std::getline(is, str);
+        return is ? str : std::string();
+    }
+
+private:
+    std::istream& is;
+};
+
+int main() {
+    PrintString printer;
+    std::vector<std::string> sv;
+    for (std::string temp; !(temp = printer()).empty(); )
+        sv.push_back(temp);
+    for (const auto &str : sv)
+        std::cout << str << ' ';
+    std::cout << std::endl;
+
+    return 0;
+}
+```
+
+## 14.37|[cpp](./ex14_37.cpp)
+
+> 编写一个类令其检查两个值是否相等。使用该对象及标准库算法编写程序，令其替换某个序列中具有给定值的所有实例。
+
+```c++
+//
+// Created by wangheng on 2020/5/7.
+//
+
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
+class IsEqual {
+public:
+    IsEqual(int v) :value(v) {}
+    bool operator()(int elem) {
+        return value == elem;
+    }
+
+private:
+    int value;
+};
+
+int main() {
+    std::vector<int> vec{3, 2, 1, 4, 3, 7};
+    std::replace_if(vec.begin(), vec.end(), IsEqual(3), 5);
+    for (int i : vec)
+        std::cout << i << ' ';
+    std::cout << std::endl;
+
+    return 0;
+}
+```
+
+## 14.38
+
+> 编写一个类令其检查某个给定的 `string` 对象的长度是否与一个阈值相等。使用该对象编写程序，统计并报告在输入的文件中长度为1的单词有多少个，长度为2的单词有多少个、......、长度为10的单词有多少个。
+
