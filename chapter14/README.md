@@ -7,7 +7,7 @@
 | [14.19](#1419) | [14.20](#1420) | [14.21](#1421) | [14.22](#1422hcpp) | [14.23](#1423hcpp) | [14.24](#1424) |
 | [14.25](#1425) | [14.26](#1426) | [14.27](#1427hcpp) | [14.28](#1428hcpp) | [14.29](#1429) | [14.30](#1430) |
 | [14.31](#1431) | [14.32](#1432) | [14.33](#1433) | [14.34](#1434) | [14.35](#1435cpp) | [14.36](#1436cpp) |
-| [14.37](#1437cpp) |                |      |      |      |      |
+| [14.37](#1437cpp) | [14.38](#1438cpp) | [14.39](#1439cpp) | [14.40](1440cpp) | [14.41](#1441) |      |
 |                |                |      |      |      |      |
 |                |                |      |      |      |      |
 
@@ -709,7 +709,206 @@ int main() {
 }
 ```
 
-## 14.38
+## 14.38|[cpp](./ex14_38.cpp)
 
 > 编写一个类令其检查某个给定的 `string` 对象的长度是否与一个阈值相等。使用该对象编写程序，统计并报告在输入的文件中长度为1的单词有多少个，长度为2的单词有多少个、......、长度为10的单词有多少个。
 
+```c++
+//
+// Created by wangheng on 2020/5/7.
+//
+
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <sstream>
+
+class GetLength {
+public:
+    GetLength(std::size_t n) : sz(n) {}
+    bool operator()(const std::string& s) {
+        return s.size() == sz;
+    }
+
+private:
+    std::size_t sz;
+};
+
+int main() {
+    std::ifstream infile("C:\\Users\\wh969\\Desktop\\code\\CPP-Primer\\data\\ex14_38.txt", std::ios::in);
+    std::vector<std::string> words;
+    std::string line;
+    while (std::getline(infile, line)) {
+        std::istringstream line_words(line);
+        std::string word;
+        while (line_words >> word)
+            words.push_back(word);
+    }
+
+    // 对words按长度从小到大排序
+    std::stable_sort(words.begin(), words.end(),
+                     [] (const std::string& s1, const std::string& s2) {return s1.size() < s2.size();});
+
+    // 计算words中最长的string的长度
+    std::size_t maxLength = (words.end() - 1)->size();
+
+    for (std::size_t i = 1; i <= maxLength; ++i) {
+        auto number = std::count_if(words.begin(), words.end(), GetLength(i));
+        std::cout << "Length " << i << ": " << number << std::endl;
+        auto first = std::find_if(words.begin(), words.end(), GetLength(i));
+        for (auto iter = first; iter != first + number; ++iter)
+            std::cout << *iter << ' ';
+        std::cout << std::endl;
+    }
+
+    return 0;
+}
+```
+
+## 14.39|[cpp](./ex14_39.cpp)
+
+> 修改上一题的程序令其报告长度在1到9之间的单词有多少个、长度在10以上的单词有多少个。
+
+```c++
+//
+// Created by wangheng on 2020/5/7.
+//
+
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <algorithm>
+#include <vector>
+#include <sstream>
+
+class GetLength {
+public:
+    GetLength(std::size_t n) : sz(n) {}
+    bool operator()(const std::string& s) {
+        return s.size() == sz;
+    }
+
+private:
+    std::size_t sz;
+};
+
+int main() {
+    std::ifstream infile("C:\\Users\\wh969\\Desktop\\code\\CPP-Primer\\data\\ex14_38.txt", std::ios::in);
+    std::vector<std::string> words;
+    std::string line;
+    while (std::getline(infile, line)) {
+        std::istringstream line_words(line);
+        std::string word;
+        while (line_words >> word)
+            words.push_back(word);
+    }
+
+    // 对words按长度从小到大排序
+    std::stable_sort(words.begin(), words.end(),
+                     [] (const std::string& s1, const std::string& s2) {return s1.size() < s2.size();});
+
+    std::size_t sz = 1;
+    while (sz < 10) {
+        auto number = std::count_if(words.begin(), words.end(), GetLength(sz));
+        std::cout << "Length " << sz << ": " << number << std::endl;
+        auto first = std::find_if(words.begin(), words.end(), GetLength(sz));
+        for (auto iter = first; iter != first + number; ++iter)
+            std::cout << *iter << ' ';
+        std::cout << std::endl;
+        ++sz;
+    }
+    auto first = std::find_if(words.begin(), words.end(),
+            [sz](const std::string& s) {return s.size() >= sz;});
+    std::cout << "Length >= 10: " << words.end() - first << std::endl;
+    for (auto iter = first; iter != words.end(); ++iter)
+        std::cout << *iter << ' ';
+    std::cout << std::endl;
+
+    return 0;
+}
+```
+
+## 14.40|[cpp](./ex14_40.cpp)
+
+> 重新编写10.3.2节的biggies 函数，使用函数对象替换其中的 lambda 表达式。
+
+```c++
+//
+// Created by wangheng on 2020/5/7.
+//
+
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <vector>
+
+class ShorterString {
+public:
+    bool operator()(const std::string& s1, const std::string& s2) const {
+        return s1.size() < s2.size();
+    }
+};
+
+class BiggerEqual {
+public:
+    BiggerEqual(std::size_t n) : sz(n) {}
+    bool operator()(const std::string& s) {
+        return s.size() >= sz;
+    }
+
+private:
+    std::size_t sz;
+};
+
+class Printer {
+public:
+    Printer(std::ostream& os = std::cout, std::string str = " ") :
+        os(os), str(str) {}
+    void operator()(const std::string& s) {
+        os << s << str;
+    }
+
+private:
+    std::ostream& os;
+    std::string str;
+};
+
+std::string make_plural(std::size_t ctr, const std::string &word, const std::string& ending) {
+    return (ctr > 1) ? word + ending : word;
+}
+
+// 将wors按字典顺序排序，删除重复单词
+void elimDups(std::vector<std::string>& words) {
+    std::sort(words.begin(), words.end());
+    auto end_unique = std::unique(words.begin(), words.end());
+    words.erase(end_unique, words.end());
+}
+
+void biggies(std::vector<std::string>& words, std::vector<std::string>::size_type sz) {
+    elimDups(words);
+    std::stable_sort(words.begin(), words.end(), ShorterString());
+    auto wc = std::find_if(words.begin(), words.end(), BiggerEqual(sz));
+    auto count = words.end() - wc;
+    std::cout << count << " " << make_plural(count, "word", "s")
+        << " of length " << sz << " or longer" << std::endl;
+    std::for_each(wc, words.end(), Printer());
+    std::cout << std::endl;
+}
+
+int main() {
+    std::vector<std::string> words = {"an", "the", "good", "football", "bike", "Chinese"};
+    biggies(words, 4);
+
+    return 0;
+}
+```
+
+
+
+## 14.41
+
+>  你认为 C++ 11 标准为什么要增加 lambda？对于你自己来说，什么情况下会使用 lambda，什么情况下会使用类？ 
+
+使用`lambda`非常方便，当需要使用一个函数且这个函数非常简单和不常用时，使用`lambda`是比较简单的选择。
