@@ -7,8 +7,8 @@
 | [14.19](#1419) | [14.20](#1420) | [14.21](#1421) | [14.22](#1422hcpp) | [14.23](#1423hcpp) | [14.24](#1424) |
 | [14.25](#1425) | [14.26](#1426) | [14.27](#1427hcpp) | [14.28](#1428hcpp) | [14.29](#1429) | [14.30](#1430) |
 | [14.31](#1431) | [14.32](#1432) | [14.33](#1433) | [14.34](#1434) | [14.35](#1435cpp) | [14.36](#1436cpp) |
-| [14.37](#1437cpp) | [14.38](#1438cpp) | [14.39](#1439cpp) | [14.40](#1440cpp) | [14.41](#1441) |      |
-|                |                |      |      |      |      |
+| [14.37](#1437cpp) | [14.38](#1438cpp) | [14.39](#1439cpp) | [14.40](#1440cpp) | [14.41](#1441) | [14.42](#1442) |
+| [14.43](#1443cpp) | [14.44](#1444cpp) |      |      |      |      |
 |                |                |      |      |      |      |
 
 ## 14.01
@@ -912,3 +912,136 @@ int main() {
 >  你认为 C++ 11 标准为什么要增加 lambda？对于你自己来说，什么情况下会使用 lambda，什么情况下会使用类？ 
 
 使用`lambda`非常方便，当需要使用一个函数且这个函数非常简单和不常用时，使用`lambda`是比较简单的选择。
+
+## 14.42
+
+> 使用标准库函数对象及适配器定义一条表达式，令其
+>
+> ```
+> (a) 统计大于1024的值有多少个。 
+> (b) 找到第一个不等于pooh的字符串。
+> (c)将所有的值乘以2。
+> ```
+
+统计大于1024的值的个数：
+
+```c++
+#include <iostream>
+#include <functional>
+#include <vector>
+#include <algorithm>
+
+int main() {
+    std::vector<int> vec = {1,2,3,1025,2343,43554};
+    auto count = std::count_if(vec.begin(), vec.end(),
+            std::bind(std::greater<int>(), std::placeholders::_1, 1024));
+    std::cout << count << std::endl;
+
+    return 0;
+}
+```
+
+找到第一个不等于`pooh`的字符串：
+
+```c++
+#include <iostream>
+#include <functional>
+#include <vector>
+#include <algorithm>
+#include <string>
+
+int main() {
+    std::vector<std::string> vec{"pooh", "pooh", "pooh", "good", "pooh"};
+    auto first = std::find_if(vec.begin(), vec.end(),
+            std::bind(std::not_equal_to<std::string>(), std::placeholders::_1, "pooh"));
+    std::cout << *first << std::endl;
+
+    return 0;
+}
+```
+
+将所有的值乘2：
+
+```c++
+#include <iostream>
+#include <functional>
+#include <vector>
+#include <algorithm>
+
+int main() {
+    std::vector<int> vec{1,2,3,4,5,6};
+    std::transform(vec.begin(), vec.end(), vec.begin(),
+            std::bind(std::multiplies<int>(), std::placeholders::_1, 2));
+    for (auto iter = vec.begin(); iter != vec.end(); ++iter)
+        std::cout << *iter << ' ';
+    std::cout << std::endl;
+
+    return 0;
+}
+```
+
+## 14.43|[cpp](./ex14_43.cpp)
+
+> 使用标准库函数对象判断一个给定的int值是否能被 int 容器中的所有元素整除。
+
+```c++
+//
+// Created by wangheng on 2020/5/8.
+//
+
+#include <iostream>
+#include <algorithm>
+#include <functional>
+#include <vector>
+
+int main() {
+    bool flag = true;
+    std::vector<int> vec{2,6,4,8};
+    // 判断2是否能被容器内的所有元素整除
+    auto count = std::count_if(vec.begin(), vec.end(),
+            std::bind(std::equal_to<int>(), std::bind(std::modulus<int>(), std::placeholders::_1, 2), 0));
+    if (count != vec.size())
+        flag = false;
+    std::cout << std::boolalpha << flag << std::endl;
+
+    return 0;
+}
+```
+
+## 14.44|[cpp](./ex14_44.cp)
+
+> 编写一个简单的桌面计算器使其能处理二元运算。
+
+```c++
+//
+// Created by wangheng on 2020/5/8.
+//
+
+#include <iostream>
+#include <map>
+#include <functional>
+#include <string>
+
+int add(int i, int j) { return i + j; }
+auto mod = [](int i, int j) { return i % j; };
+struct Div {int operator()(int i, int j) { return i / j; }};
+
+auto binops = std::map<std::string, std::function<int(int, int)>> {
+        {"+", add},                         // function pointer
+        {"-", std::minus<int>()},       //library functor
+        {"/", Div()},                   // user-defined functor
+        {"*", [](int i, int j) { return i * j; }},   //unnamed lambda
+        {"%", mod}                          // named lambda
+};
+
+int main() {
+    while (std::cout << "Please enter as: num operator num: \n", true) {
+        int lhs, rhs;
+        std::string op;
+        std::cin >> lhs >> op >> rhs;
+        std::cout << binops[op](lhs, rhs) << std::endl;
+    }
+    return 0;
+}
+```
+
