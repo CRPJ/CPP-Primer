@@ -22,4 +22,5 @@ private:
 protected:
     double price = 0.0;
 };
+
 #endif //CPP_PRIMER_EX15_03_H
