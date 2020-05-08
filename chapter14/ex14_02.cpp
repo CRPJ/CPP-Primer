@@ -63,5 +63,10 @@ int main() {
     item1 = "123";
     std::cout << item1 << std::endl;
 
+    std::string str = static_cast<std::string>(item1);
+    std::cout << "bookNo: " << str << std::endl;
+    double price = static_cast<double>(item1);
+    std::cout << "avg_price: " << price << std::endl;
+
     return 0;
 }

@@ -25,6 +25,8 @@ public:
     Sales_data& operator-=(const Sales_data&);  // 符合运算符
     std::string isbn() const {return bookNo;}
     Sales_data& operator=(const std::string&);
+    explicit operator std::string() {return bookNo;}
+    explicit operator double()  const {return avg_price();}
 
 private:
     inline double avg_price() const ;
