@@ -9,7 +9,7 @@
 
 class Bulk_quote : public Disc_quote {
     Bulk_quote() = default;
-    Bulk_quote(std::string& book, double p, std::size_t qty, double disc) :
+    Bulk_quote(const std::string& book, double p, std::size_t qty, double disc) :
         Disc_quote(book, p, qty, disc) {}
 
     double net_price(std::size_t n) const override ;
