@@ -2,8 +2,8 @@
 
 | [15.01](#1501)  | [15.02](#1502) | [15.03](#1503hcpp) | [15.04](#1504) | [15.05](#1505h) | [15.06](#1506cpp) |
 | :-------------: | :------------: | :----------------: | :------------: | :-------------: | :---------------: |
-| [15.07](#1507h) | [15.08](#1508) |   [15.09](#1509)   | [15.10](#1510) |                 |                   |
-|                 |                |                    |                |                 |                   |
+| [15.07](#1507h) | [15.08](#1508) |   [15.09](#1509)   | [15.10](#1510) | [15.11](#1511)  |  [15.12](#1512)   |
+| [15.13](#1513)  | [15.14](#1514) |                    |                |                 |                   |
 |                 |                |                    |                |                 |                   |
 |                 |                |                    |                |                 |                   |
 |                 |                |                    |                |                 |                   |
@@ -232,3 +232,75 @@ double Limit_quote::net_price(std::size_t n) const {
 
 > 为你的 Quote 类体系添加一个名为 debug 的虚函数，令其分别显示每个类的数据成员。
 
+[Quote.h](./ex15_03.h)
+
+```c++
+void Quote::debug() const {
+    std::cout << "data member of this class\n"
+                 << "bookNo = " << bookNo << " "
+                 << "price = " << price << std::endl;
+```
+
+[Bulk_quote.h](./ex15_05.h)
+
+```c++
+void Bulk_quote::debug() const {
+    std::cout << "data members of this class:\n"
+        << "price = " << price << " "
+        << "min_qty = " << min_qty << " "
+        << "discount = " << discount << std::endl;
+```
+
+## 15.12
+
+> 有必要将一个成员函数同时声明成 `override` 和 `final` 吗？为什么？
+
+有必要。`override`的含义是此函数是对基类虚函数的重写，`final`的含义是阻止派生类重写当前虚函数，两个声明具有不同的作用。
+
+## 15.13
+
+> 给定下面的类，解释每个 print 函数的机理：
+>
+> ```c++
+> class base {
+> public:
+> 	string name() { return basename;}
+> 	virtual void print(ostream &os) { os << basename; }
+> private:
+> 	string basename;
+> };
+> class derived : public base {
+> public:
+> 	void print(ostream &os) { print(os); os << " " << i; }
+> private:
+> 	int i;
+> };
+> ```
+>
+> 在上述的代码中存在问题吗？如果有，你该如何修改它？
+
+有问题，在派生类的`print`函数中调用`print`函数会导致递归调用，应该修改为：
+
+`void print(ostream& os) override { base::print(os); os << " " << i; }`
+
+## 15.14
+
+> 给定上一题中的类以及下面这些对象，说明在运行时调用哪个函数：
+>
+> ```c++
+> base bobj; 			base *bp1 = &bobj; 	base &br1 = bobj;
+> derived dobj; 		base *bp2 = &dobj; 	base &br2 = dobj;
+> (a) bobj.print();	(b)dobj.print();	(c)bp1->name();
+> (d)bp2->name();		(e)br1.print();		(f)br2.print();
+> ```
+
+* (a) 编译时确定调用版本，调用基类的`print`函数。
+* (b) 编译时确定调用版本，调用派生类的`print`函数。
+* (c) 编译时确定调用基类的`name`函数。
+* (d) 编译时确定调用基类的`name`函数。
+* (e) 运行时确定调用基类的`print`函数。
+* (f) 运行时确定调用派生类的`print`函数。
+
+## 15.15
+
+> 
