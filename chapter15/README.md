@@ -1,13 +1,13 @@
 # 目录
 
-| [15.01](#1501)  | [15.02](#1502) | [15.03](#1503hcpp) | [15.04](#1504) | [15.05](#1505h) | [15.06](#1506cpp) |
-| :-------------: | :------------: | :----------------: | :------------: | :-------------: | :---------------: |
-| [15.07](#1507h) | [15.08](#1508) |   [15.09](#1509)   | [15.10](#1510) | [15.11](#1511)  |  [15.12](#1512)   |
-| [15.13](#1513)  | [15.14](#1514) |                    |                |                 |                   |
-|                 |                |                    |                |                 |                   |
-|                 |                |                    |                |                 |                   |
-|                 |                |                    |                |                 |                   |
-|                 |                |                    |                |                 |                   |
+| [15.01](#1501)  | [15.02](#1502) | [15.03](#1503hcpp) | [15.04](#1504)  | [15.05](#1505h) | [15.06](#1506cpp) |
+| :-------------: | :------------: | :----------------: | :-------------: | :-------------: | :---------------: |
+| [15.07](#1507h) | [15.08](#1508) |   [15.09](#1509)   | [15.10](#1510)  | [15.11](#1511)  |  [15.12](#1512)   |
+| [15.13](#1513)  | [15.14](#1514) |   [15.15](#1515)   | [15.16](#1516h) | [15.17](#1517)  |                   |
+|                 |                |                    |                 |                 |                   |
+|                 |                |                    |                 |                 |                   |
+|                 |                |                    |                 |                 |                   |
+|                 |                |                    |                 |                 |                   |
 
 ## 15.01
 
@@ -303,4 +303,120 @@ void Bulk_quote::debug() const {
 
 ## 15.15
 
-> 
+> 定义你自己的 Disc_quote 和 Bulk_quote。
+
+[Disc_quote](./Disc_quote.h)
+
+```c++
+//
+// Created by wangheng on 2020/5/9.
+//
+
+#ifndef CPP_PRIMER_DISC_QUOTE_H
+#define CPP_PRIMER_DISC_QUOTE_H
+
+#include "ex15_03.h"
+
+class Disc_quote : public Quote {
+public:
+    Disc_quote() = default;
+    Disc_quote(std::string& book, double p, std::size_t qty, double disc) :
+        Quote(book, p), quantity(qty), discount(disc) {}
+
+    double net_price(std::size_t) const override = 0;
+
+protected:
+    std::size_t quantity = 0;
+    double discount = 0.0;
+};
+
+#endif //CPP_PRIMER_DISC_QUOTE_H
+
+```
+
+[Bulk_quote](./Bulk_quote.h)
+
+```c++
+//
+// Created by wangheng on 2020/5/9.
+//
+
+#ifndef CPP_PRIMER_BULK_QUOTE_H
+#define CPP_PRIMER_BULK_QUOTE_H
+
+#include "Disc_quote.h"
+
+class Bulk_quote : public Disc_quote {
+    Bulk_quote() = default;
+    Bulk_quote(std::string& book, double p, std::size_t qty, double disc) :
+        Disc_quote(book, p, qty, disc) {}
+
+    double net_price(std::size_t n) const override ;
+};
+
+double Bulk_quote::net_price(std::size_t n) const {
+    if (n > quantity)
+        return n * (1 - discount) * price;
+    else
+        return n * price;
+}
+
+#endif //CPP_PRIMER_BULK_QUOTE_H
+
+```
+
+## 15.16|[h](./Limit_quote.h)
+
+> 改写你在15.2.2节练习中编写的数量受限的折扣策略，令其继承 Disc_quote。
+
+```c++
+//
+// Created by wangheng on 2020/5/9.
+//
+
+#ifndef CPP_PRIMER_LIMIT_QUOTE_H
+#define CPP_PRIMER_LIMIT_QUOTE_H
+
+#include "Disc_quote.h"
+
+class Limit_quote : public Disc_quote {
+    Limit_quote() = default;
+    Limit_quote(const std::string& book, double p, std::size_t qty, double disc) :
+        Disc_quote(book, p, qty, disc) {}
+
+    double net_price(std::size_t n) const override ;
+};
+
+double Limit_quote::net_price(std::size_t n) const {
+    if (n <= quantity)
+        return n * (1 - discount) * price;
+    else
+        return quantity * (1 - discount) * price + (n - quantity) * price;
+}
+
+#endif //CPP_PRIMER_LIMIT_QUOTE_H
+
+```
+
+## 15.17
+
+> 尝试定义一个 Disc_quote 的对象，看看编译器给出的错误信息是什么？
+
+```
+error: cannot declare variable 'dq' to be of abstract type 'Disc_quote'
+     Disc_quote dq("textbook", 10.1, 15, 0.2);
+```
+
+## 15.18
+
+> 假设给定了第543页和第544页的类，同时已知每个对象的类型如注释所示，判断下面的哪些赋值语句是合法的。解释那些不合法的语句为什么不被允许：
+>
+> ```c++
+> Base *p = &d1;  //d1 的类型是 Pub_Derv
+> p = &d2;		//d2 的类型是 Priv_Derv
+> p = &d3;		//d3 的类型是 Prot_Derv
+> p = &dd1;		//dd1 的类型是 Derived_from_Public	
+> p = &dd2;		//dd2 的类型是 Derived_from_Private
+> p = &dd3;		//dd3 的类型是 Derived_from_Protected
+> ```
+
