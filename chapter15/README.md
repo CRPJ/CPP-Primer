@@ -1,13 +1,13 @@
 # 目录
 
-| [15.01](#1501)  | [15.02](#1502) | [15.03](#1503hcpp) | [15.04](#1504)  | [15.05](#1505h) | [15.06](#1506cpp) |
-| :-------------: | :------------: | :----------------: | :-------------: | :-------------: | :---------------: |
-| [15.07](#1507h) | [15.08](#1508) |   [15.09](#1509)   | [15.10](#1510)  | [15.11](#1511)  |  [15.12](#1512)   |
-| [15.13](#1513)  | [15.14](#1514) |   [15.15](#1515)   | [15.16](#1516h) | [15.17](#1517)  |                   |
-|                 |                |                    |                 |                 |                   |
-|                 |                |                    |                 |                 |                   |
-|                 |                |                    |                 |                 |                   |
-|                 |                |                    |                 |                 |                   |
+| [15.01](#1501)  |  [15.02](#1502)   | [15.03](#1503hcpp) | [15.04](#1504)  | [15.05](#1505h) | [15.06](#1506cpp) |
+| :-------------: | :---------------: | :----------------: | :-------------: | :-------------: | :---------------: |
+| [15.07](#1507h) |  [15.08](#1508)   |   [15.09](#1509)   | [15.10](#1510)  | [15.11](#1511)  |  [15.12](#1512)   |
+| [15.13](#1513)  |  [15.14](#1514)   |   [15.15](#1515)   | [15.16](#1516h) | [15.17](#1517)  |  [15.18](#1518)   |
+| [15.19](#1519)  | [15.20](#1520cpp) |   [15.21](1521)    | [15.22](#1522)  | [15.23](#1523)  |                   |
+|                 |                   |                    |                 |                 |                   |
+|                 |                   |                    |                 |                 |                   |
+|                 |                   |                    |                 |                 |                   |
 
 ## 15.01
 
@@ -419,4 +419,125 @@ error: cannot declare variable 'dq' to be of abstract type 'Disc_quote'
 > p = &dd2;		//dd2 的类型是 Derived_from_Private
 > p = &dd3;		//dd3 的类型是 Derived_from_Protected
 > ```
+
+* `Base *p = &d1;`合法
+* `p = &d2;`不合法，因为`Priv_Derv`是私有继承自`Base`，只有公有继承时，用户代码才能使用派生类向基类的转换。
+* `p = &d3;`不合法，理由如上。
+* `p = &dd1;`合法
+* `p = &dd2;`不合法
+* `p = &dd3;`不合法
+
+## 15.19
+
+> 假设543页和544页的每个类都有如下形式的成员函数：
+>
+> ```c++
+> void memfcn(Base &b) { b = *this; }
+> ```
+>
+> 对于每个类，分别判断上面的函数是否合法。
+
+合法：
+
+* `Pub_Derv`
+* `Prot_Derv`
+* `Priv_derv`
+* `Derived_from_Public`
+* `Derived_from_Protected`
+
+不合法：
+
+* `Derived_from_Private`
+
+## 15.20|[cpp](./ex15_20.cpp)
+
+> 编写代码检验你对前面两题的回答是否正确。
+
+```c++
+//
+// Created by wangheng on 2020/5/10.
+//
+
+#include <iostream>
+#include <string>
+
+class Base {
+public:
+    void pub_mem(); // public成员
+protected:
+    int prot_mem;   // protected成员
+private:
+    char priv_mem;  // private成员
+};
+
+struct Pub_Derv : public Base {
+    void memfcn(Base& b) { b = *this; }
+};
+
+struct Prot_Derv : protected Base {
+    void memfcn(Base& b) { b = *this; }
+};
+
+struct Priv_Derv : private Base {
+    void memfcn(Base& b) { b = *this; }
+};
+
+struct Derived_from_Public : public Pub_Derv {
+    void memfcn(Base& b) { b = *this; }
+};
+
+struct Derived_from_Protected: public Prot_Derv {
+    void memfcn(Base& b) { b = *this; }
+};
+
+struct Derived_from_Private : public Priv_Derv {
+    // Cannot cast 'const Derived_from_Private' to its private base class 'const Base'
+    // 不能将派生类向其私有继承的基类转换
+    // void memfcn(Base& b) { b = *this; }
+};
+
+int main()
+{
+    Pub_Derv d1;
+    Base *p = &d1;
+
+    Priv_Derv d2;
+    //p = &d2;
+
+    Prot_Derv d3;
+    //p = &d3;
+
+    Derived_from_Public dd1;
+    p = &dd1;
+
+    Derived_from_Private dd2;
+    //p =& dd2;
+
+    Derived_from_Protected dd3;
+    //p = &dd3;
+
+
+    return 0;
+}
+```
+
+## 15.21
+
+> 从下面这些一般性抽象概念中任选一个（或者选一个你自己的），将其对应的一组类型组织成一个继承体系：
+>
+> ```
+> (a) 图形文件格式（如gif、tiff、jpeg、bmp）
+> (b) 图形基元（如方格、圆、球、圆锥）
+> (c) C++语言中的类型（如类、函数、成员函数）
+> ```
+
+声明定义一个`Shape`抽象基类，然后方格、圆、球、圆锥都可以继承自`Shape`。
+
+## 15.22
+
+> 对于你在上一题中选择的类，为其添加函数的虚函数及公有成员和受保护的成员。
+
+## 15.23
+
+> 假设第550页的 `D1` 类需要覆盖它继承而来的 `fcn` 函数，你应该如何对其进行修改？如果你修改之后 `fcn` 匹配了 `Base` 中的定义，则该节的那些调用语句将如何解析？
 
