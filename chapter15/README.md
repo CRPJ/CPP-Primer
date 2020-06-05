@@ -4,8 +4,8 @@
 | :-------------: | :---------------: | :----------------: | :-------------: | :-------------: | :---------------: |
 | [15.07](#1507h) |  [15.08](#1508)   |   [15.09](#1509)   | [15.10](#1510)  | [15.11](#1511)  |  [15.12](#1512)   |
 | [15.13](#1513)  |  [15.14](#1514)   |   [15.15](#1515)   | [15.16](#1516h) | [15.17](#1517)  |  [15.18](#1518)   |
-| [15.19](#1519)  | [15.20](#1520cpp) |   [15.21](#1521)   | [15.22](#1522)  | [15.23](#1523)  |                   |
-|                 |                   |                    |                 |                 |                   |
+| [15.19](#1519)  | [15.20](#1520cpp) |   [15.21](#1521)   | [15.22](#1522)  | [15.23](#1523)  |  [15.24](#1524)   |
+| [15.25](#1525)  |  [15.26](#1526)   |  [15.27](#1527h)   |                 |                 |                   |
 |                 |                   |                    |                 |                 |                   |
 |                 |                   |                    |                 |                 |                   |
 
@@ -542,3 +542,87 @@ int main()
 > 假设第550页的 `D1` 类需要覆盖它继承而来的 `fcn` 函数，你应该如何对其进行修改？如果你修改之后 `fcn` 匹配了 `Base` 中的定义，则该节的那些调用语句将如何解析？
 
 移除`int`参数。
+
+## 15.24
+
+> 哪种类需要虚析构函数？虚析构函数必须执行什么样的操作？
+
+基类通常需要定义一个虚析构函数。定义了虚析构函数之后，当delete一个动态分配的对象的指针时将根据指针指向的实际的对象类型调用相应的析构函数，和虚函数的动态绑定同理。
+
+## 15.25
+
+> 我们为什么为 Disc_quote 定义一个默认构造函数？如果去掉该构造函数的话会对 Bulk_quote 的行为产生什么影响？
+
+因为`Bulk_quote`继承自`Disc_quote`且其定义了一个默认构造函数，如果`Disc_quote`没有默认构造函数，那么`Bulk_quote`将无法完成默认构造。
+
+## 15.26
+
+> 定义 Quote 和 Bulk_quote 的拷贝控制成员，令其与合成的版本行为一致。为这些成员以及其他构造函数添加打印状态的语句，使得我们能够知道正在运行哪个程序。使用这些类编写程序，预测程序将创建和销毁哪些对象。重复实验，不断比较你的预测和实际输出结果是否相同，直到预测完全准确再结束。
+
+[Bulk](./ex15_26.h)|[Disk_quote](./ex15_26_1.h)|[Bulk_quote](./ex15_26_2.h)|[test](./ex15_26.cpp)
+
+## 15.27|[h](#ex15_26_2.h)
+
+> 重新定义你的 Bulk_quote 类，令其继承构造函数。
+
+```c++
+//
+// Created by wangheng on 2020/6/5.
+//
+
+#ifndef CPP_PRIMER_EX15_26_2_H
+#define CPP_PRIMER_EX15_26_2_H
+
+#include <iostream>
+#include "ex15_26_1.h"
+
+class Bulk_quote : public Disk_quote{
+public:
+    Bulk_quote() { std::cout << "Bulk_quote: default constructor" << std::endl; }
+    Bulk_quote(const std::string& b, double p, std::size_t n, double d) :
+        Disk_quote(b, p, n, d) {
+        std::cout << "Bulk_quote: normal constructor" << std::endl;
+    }
+
+    Bulk_quote(const Bulk_quote& bulk) :
+        Disk_quote(bulk) {
+        std::cout << "Bulk_quote: copy constructor" << std::endl;
+    }
+
+    Bulk_quote& operator=(const Bulk_quote& rhs) {
+        if (this != &rhs) {
+            Disk_quote::operator=(rhs);
+        }
+        std::cout << "Bulk_quote: copy operator()" << std::endl;
+        return *this;
+    }
+
+    Bulk_quote(Bulk_quote&& bulk) : Disk_quote(std::move(bulk)) {
+        std::cout << "Bulk_quote: move constructor" << std::endl;
+    }
+
+    Bulk_quote& operator=(Bulk_quote&& rhs) {
+        if (this != &rhs) {
+            Disk_quote::operator=(rhs);
+        }
+        std::cout << "Bulk_quote: move operator=()" << std::endl;
+        return *this;
+    }
+
+    ~Bulk_quote() {
+        std::cout << "Bulk_quote: destructor" << std::endl;
+    }
+
+    double net_price(std::size_t n) const override {
+        if (n < quantity)
+            return n * price;
+        else {
+            return (n - quantity) * price * (1 - discount) + quantity * price;
+        }
+    }
+};
+
+#endif //CPP_PRIMER_EX15_26_2_H
+
+```
+
