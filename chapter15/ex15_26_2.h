@@ -46,6 +46,7 @@ public:
     }
 
     double net_price(std::size_t n) const override {
+        std::cout << "Bulk_quote: net_price" << std::endl;
         if (n < quantity)
             return n * price;
         else {
