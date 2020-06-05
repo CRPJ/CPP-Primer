@@ -45,7 +45,10 @@ public:
     }
 
     std::string isbn() { return bookNo; }
-    virtual double net_price(std::size_t n) const { return n * price; }
+    virtual double net_price(std::size_t n) const {
+        std::cout << "Quote: net_price" << std::endl;
+        return n * price;
+    }
     virtual ~Quote() {
         std::cout << "Quote: destructor" << std::endl;
     }
