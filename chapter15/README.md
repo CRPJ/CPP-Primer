@@ -5,7 +5,7 @@
 | [15.07](#1507h) |  [15.08](#1508)   |   [15.09](#1509)   |  [15.10](#1510)   |  [15.11](#1511)   |  [15.12](#1512)   |
 | [15.13](#1513)  |  [15.14](#1514)   |   [15.15](#1515)   |  [15.16](#1516h)  |  [15.17](#1517)   |  [15.18](#1518)   |
 | [15.19](#1519)  | [15.20](#1520cpp) |   [15.21](#1521)   |  [15.22](#1522)   |  [15.23](#1523)   |  [15.24](#1524)   |
-| [15.25](#1525)  |  [15.26](#1526)   |  [15.27](#1527h)   | [15.28](#1528cpp) | [15.29](#1529cpp) |                   |
+| [15.25](#1525)  |  [15.26](#1526)   |  [15.27](#1527h)   | [15.28](#1528cpp) | [15.29](#1529cpp) |  [15.30](#1530)   |
 |                 |                   |                    |                   |                   |                   |
 |                 |                   |                    |                   |                   |                   |
 
@@ -676,3 +676,72 @@ int main() {
 }
 ```
 
+## 15.30
+
+> 编写你自己的 Basket 类，用它计算上一个练习中交易记录的总价格。
+
+```c++
+//
+// Created by wangheng on 2020/6/7.
+//
+
+#ifndef CPP_PRIMER_BASKET_H
+#define CPP_PRIMER_BASKET_H
+
+#include <memory>
+#include <set>
+#include "ex15_26.h"
+#include "print_total.h"
+
+class Basket{
+public:
+    void add_item(const Quote& sale) {
+        items.insert(std::shared_ptr<Quote>(sale.clone()));
+    }
+    void add_item(Quote &&sale) {
+        items.insert(std::shared_ptr<Quote>(std::move(sale).clone()));
+    }
+
+    double total_receipt(std::ostream& os) const {
+        double sum = 0.0;
+        for (auto iter = items.cbegin(); iter != items.cend(); iter = items.upper_bound(*iter)) {
+            sum += print_total(os, **iter, items.count(*iter));
+        }
+        os << "Total sale: " << sum << std::endl;
+
+        return sum;
+    }
+
+private:
+    static bool compare(const std::shared_ptr<Quote> &lhs, const std::shared_ptr<Quote>& rhs) {
+        return lhs->isbn() < rhs->isbn();
+    }
+    std::multiset<std::shared_ptr<Quote>, decltype(compare)*> items{compare};
+};
+
+#endif //CPP_PRIMER_BASKET_H
+
+```
+
+```c++
+//
+// Created by wangheng on 2020/6/7.
+//
+
+#ifndef CPP_PRIMER_PRINT_TOTAL_H
+#define CPP_PRIMER_PRINT_TOTAL_H
+
+#include <iostream>
+#include "ex15_26.h"
+
+double print_total(std::ostream& os, const Quote &item, std::size_t n) {
+    double ret = item.net_price(n);
+    os << "ISBN: " << item.isbn() << " # sold: " << n << " total due: " << ret << std::endl;
+    return ret;
+}
+
+#endif //CPP_PRIMER_PRINT_TOTAL_H
+
+```
+
+[print_total.h](./print_total.h)|[basket.h](./basket.h)|[test](./ex15_30.cpp)
