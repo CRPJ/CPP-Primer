@@ -53,6 +53,9 @@ public:
             return (n - quantity) * price * (1 - discount) + quantity * price;
         }
     }
+
+    Bulk_quote* clone() const & { return new Bulk_quote(*this); }
+    Bulk_quote* clone() && { return new Bulk_quote(std::move(*this)); }
 };
 
 #endif //CPP_PRIMER_EX15_26_2_H

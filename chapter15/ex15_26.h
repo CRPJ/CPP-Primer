@@ -44,7 +44,8 @@ public:
         return *this;
     }
 
-    std::string isbn() { return bookNo; }
+    std::string isbn() const { return bookNo; }
+
     virtual double net_price(std::size_t n) const {
         std::cout << "Quote: net_price" << std::endl;
         return n * price;
@@ -52,6 +53,9 @@ public:
     virtual ~Quote() {
         std::cout << "Quote: destructor" << std::endl;
     }
+
+    virtual Quote* clone() const & { return new Quote(*this); }
+    virtual Quote* clone() && { return new Quote(std::move(*this)); }
 
 private:
     std::string bookNo;
