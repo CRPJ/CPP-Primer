@@ -17,7 +17,7 @@ C++ Primer第5版的部分习题答案，全部都是自己动手写的，但是
   * [第9章：顺序容器](./chapter09/README.md)
   * [第10章：泛型算法](./chapter10/README.md)
   * [第11章：关联容器](./chapter11/README.md)
-  * [第12章：动态内存](./chapter12/README.md)
+  * [第12章：动态内存](./chapter12/)
 * 第 III 部分：类设计者的工具
   * [第13章：拷贝控制](./chapter13/README.md)
   * [第14章：重载运算符与类型转换](./chapter14/README.md)
