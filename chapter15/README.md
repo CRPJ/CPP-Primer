@@ -744,4 +744,133 @@ double print_total(std::ostream& os, const Quote &item, std::size_t n) {
 
 ```
 
-[print_total.h](./print_total.h)|[basket.h](./basket.h)|[test](./ex15_30.cpp)
+[print_total.h](./print_total.h)|[basket.h](./basket.h)|[test](./ex15_30.cpp) 
+
+## 15.31
+
+> 已知 `s1、s2、s3 `和 `s4` 都是 `string`，判断下面的表达式分别创建了什么样的对象：
+>
+> ```
+> (a) Query(s1) | Query(s2) & ~Query(s3);
+> (b) Query(s1) | (Query(s2) & ~Query(s3));
+> (c) (Query(s1) & (Query(s2)) | (Query(s3) & Query(s4)));
+> ```
+
+- (a)按照运算符优先级，先`~Query(s3)`创建一个`NotQuery`对象，然后再和`Query(s2)`创建一个`AndQuery`对象，最后与`Query(s1)`创建一个`OrQuery`对象。即`(s1 | (s2 & ~(s3)))`
+- (b) 和(a)的结果一样，`(s1 | (s2 & ~(s3)))`
+- (c) 先创建两个`AndQuery`然后创建一个`OrQuery`，`((s1 & s2) | (s3 & s4))`
+
+## 15.32
+
+> 当一个 Query 类型的对象被拷贝、移动、赋值或销毁时，将分别发生什么？
+
+- **拷贝**：当被拷贝时，合成的拷贝构造函数被调用。它将拷贝两个数据成员至新的对象。而在这种情况下，数据成员是一个智能指针，当拷贝时，相应的智能指针指向相同的地址，计数器增加1.
+- **移动**：当移动时，合成的移动构造函数被调用。它将移动数据成员至新的对象。这时新对象的智能指针将会指向原对象的地址，而原对象的智能指针为 `nullptr`，新对象的智能指针的引用计数为 1.
+- **赋值**：合成的赋值运算符被调用，结果和拷贝的相同的。
+- **销毁**：合成的析构函数被调用。对象的智能指针的引用计数递减，当引用计数为 0 时，对象被销毁。
+
+## 15.33
+
+> 当一个 Query_base 类型的对象被拷贝、移动赋值或销毁时，将分别发生什么？
+
+由合成的版本来控制。然而 `Query_base` 是一个抽象类，它的对象实际上是它的派生类对象。
+
+## 15.34
+
+> 针对图15.3构建的表达式：
+>
+> ```
+> (a) 例举出在处理表达式的过程中执行的所有构造函数。
+> (b) 例举出 cout << q 所调用的 rep。
+> (c) 例举出 q.eval() 所调用的 eval。
+> ```
+
+- **a:** Query q = Query("fiery") & Query("bird") | Query("wind");
+
+1. `Query::Query(const std::string& s)` where s == "fiery","bird" and "wind"
+2. `WordQuery::WordQuery(const std::string& s)` where s == "fiery","bird" and "wind"
+3. `AndQuery::AndQuery(const Query& left, const Query& right);`
+4. `BinaryQuery(const Query&l, const Query& r, std::string s);`
+5. `Query::Query(std::shared_ptr<Query_base> query)`
+6. `OrQuery::OrQuery(const Query& left, const Query& right);`
+7. `BinaryQuery(const Query&l, const Query& r, std::string s);`
+8. `Query::Query(std::shared_ptr<Query_base> query)`
+
+- **b:**
+
+1. `query.rep()` inside the operator <<().
+2. `q->rep()` inside the member function rep().
+3. `OrQuery::rep()` which is inherited from `BinaryQuery`.
+4. `Query::rep()` for `lhs` and `rhs`: for `rhs` which is a `WordQuery` : `WordQuery::rep()` where `query_word("wind")` is returned. For `lhs` which is an `AndQuery`.
+5. `AndQuery::rep()` which is inherited from `BinaryQuery`.
+6. `BinaryQuer::rep()`: for `rhs: WordQuery::rep()` where query_word("fiery") is returned. For `lhs: WordQuery::rep()` where query_word("bird" ) is returned.
+
+- **c:**
+
+1. `q.eval()`
+2. `q->rep()`: where q is a pointer to `OrQuary`.
+3. `QueryResult eval(const TextQuery& )const override`: is called but this one has not been defined yet.
+
+## 15.35
+
+> 实现`Query`类和`Query_base`类， 其中需要定义`rep`无需定义`eval`。
+
+[Query](../TextQuery/Query.h)|[Query_base](../TextQuery/Query_base.h)
+
+## 15.36
+
+> 在构造函数和 rep 成员中添加打印语句，运行你的代码以检验你对本节第一个练习中(a)、(b)两小题的回答是否正确。
+
+## 15.37
+
+> 如果在派生类中含有 `shared_ptr<Query_base>` 类型的成员而非 Query 类型的成员，则你的类需要做出怎样的改变？
+
+## 15.38
+
+> 下面的声明合法吗？如果不合法，请解释原因;如果合法，请指出该声明的含义。
+>
+> ```
+> BinaryQuery a = Query("fiery") & Query("bird");
+> AndQuery b = Query("fiery") & Query("bird");
+> OrQuery c = Query("fiery") & Query("bird");
+> ```
+
+1. 不合法。因为 `BinaryQuery` 是抽象类。
+2. 不合法。& 操作返回的是一个 `Query` 对象。
+3. 不合法。& 操作返回的是一个 `Query` 对象。
+
+## 15.39
+
+> 实现 Query 类和　Query_base 类，求图15.3中表达式的值并打印相关信息，验证你的程序是否正确。
+
+[Query](../TextQuery/Query.cpp)|[Query_base](../TextQuery/Query_base.h)
+
+## 15.40
+
+> 在 `OrQuery` 的 `eval` 函数中，如果 `rhs` 成员返回的是空集将发生什么？
+
+不会发生什么。代码如下：
+
+```c++
+std::shared_ptr<std::set<line_no>> ret_lines =
+       std::make_shared<std::set<line_no>>(left.begin(), left.end());
+```
+
+如果 `rhs` 成员返回的是空集，在 set 当中不会添加什么。
+
+## 15.41
+
+> 重新实现你的类，这次使用指向 Query_base 的内置指针而非 `shared_ptr`。请注意，做出上述改动后你的类将不能再使用合成的拷贝控制成员。
+
+## 15.42
+
+> 从下面的几种改进中选择一种，设计并实现它:
+>
+> ```
+> (a) 按句子查询并打印单词，而不再是按行打印。
+> (b) 引入一个历史系统，用户可以按编号查阅之前的某个查询，并可以在其中添加内容或者将其余其他查询组合。
+> (c) 允许用户对结果做出限制，比如从给定范围的行中跳出匹配的进行显示。
+> ```
+
+
+
