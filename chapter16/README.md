@@ -1,18 +1,18 @@
 # 目录
 
-| [16.01](#1601) | [16.02](#1602cpp) | [16.03](#1603) | [16.04](#1604cpp) | [16.05](#1605cpp) | [16.06](#1606cpp) |
-| :------------: | :---------------: | :------------: | :---------------: | :---------------: | :---------------: |
-| [16.07](#1607) |  [16.08](#1608)   | [16.09](#1609) |  [16.10](#1610)   |  [16.11](#1611)   |  [16.12](#1612)   |
-| [16.13](#1613) |  [16.14](#1614)   | [16.15](#1615) |  [16.16](#16.16)  |                   |                   |
-|                |                   |                |                   |                   |                   |
-|                |                   |                |                   |                   |                   |
-|                |                   |                |                   |                   |                   |
-|                |                   |                |                   |                   |                   |
-|                |                   |                |                   |                   |                   |
-|                |                   |                |                   |                   |                   |
-|                |                   |                |                   |                   |                   |
-|                |                   |                |                   |                   |                   |
-|                |                   |                |                   |                   |                   |
+|  [16.01](#1601)   |  [16.02](#1602cpp)  | [16.03](#1603) | [16.04](#1604cpp) | [16.05](#1605cpp) | [16.06](#1606cpp) |
+| :---------------: | :-----------------: | :------------: | :---------------: | :---------------: | :---------------: |
+|  [16.07](#1607)   |   [16.08](#1608)    | [16.09](#1609) |  [16.10](#1610)   |  [16.11](#1611)   |  [16.12](#1612)   |
+|  [16.13](#1613)   |   [16.14](#1614)    | [16.15](#1615) |  [16.16](#16.16)  |  [16.17](#1617)   |  [16.18](#1618)   |
+| [16.19](#1619cpp) | [16.20](./#1620cpp) |                |                   |                   |                   |
+|                   |                     |                |                   |                   |                   |
+|                   |                     |                |                   |                   |                   |
+|                   |                     |                |                   |                   |                   |
+|                   |                     |                |                   |                   |                   |
+|                   |                     |                |                   |                   |                   |
+|                   |                     |                |                   |                   |                   |
+|                   |                     |                |                   |                   |                   |
+|                   |                     |                |                   |                   |                   |
 
 ## 16.01
 
@@ -591,5 +591,79 @@ void Vec<T>::push_back(const T &value) {
 
 #endif //CPP_PRIMER_VEC_H
 
+```
+
+## 16.17
+
+> 声明为 typename 的类型参数和声明为 class 的类型参数有什么不同（如果有的话）？什么时候必须使用typename？
+
+`typename`和`class`没有什么不同。当我们希望通知编译器一个名字类型时，必须使用关键字`typename`，而不能使用`class`。
+
+## 16.18
+
+> 解释下面每个函数模版声明并指出它们是否非法。更正你发现的每个错误。
+>
+> ```c++
+> (a) template <typename T, U, typename V> void f1(T, U, V);
+> (b) template <typename T> T f2(int &T);
+> (c) inline template <typename T> T foo(T, unsigned int *);
+> (d) template <typename T> f4(T, T);
+> (e) typedef char Ctype;
+> 	template <typename Ctype> Ctype f5(Ctype a);
+> ```
+
+* (a)非法。应该为`template <typename T, typename U, typename V> void f1(T, U, V)`
+* (b)非法。应该为`template<typename T> T f2(int &t)`
+* (c)非法。应该为`template<typename T> inline T foo(T, unsigned int *);`
+* (d)非法，没有返回值，应该为`template <typename T> T f4(T, T)`
+* (e)非法，`typedef char Ctype`被隐藏了
+
+## 16.19|[cpp](./ex16_19.cpp)
+
+> 编写函数，接受一个容器的引用，打印容器中的元素。使用容器的 size_type 和 size成员来控制打印元素的循环。
+
+```c++
+#include <iostream>
+#include <vector>
+
+template <typename T>
+void print(const T& container) {
+    typename T::size_type i;
+    typename T::size_type len = container.size();
+    for (i = 0; i < len; ++i)
+        std::cout << container[i] << ' ';
+}
+
+int main() {
+    std::vector<int> ivec{1,2,3,4};
+    print(ivec);
+
+    return 0;
+}
+```
+
+## 16.20|[cpp](./ex16_20.cpp)
+
+> 重写上一题的函数，使用begin 和 end 返回的迭代器来控制循环。
+
+```c++
+//
+// Created by wh969 on 2020/6/13.
+//
+#include <iostream>
+#include <vector>
+
+template <typename T>
+void print(const T &container) {
+    for (auto iter = container.begin(); iter != container.end(); ++iter)
+        std::cout << *iter << ' ';
+}
+
+int main() {
+    std::vector<int> ivec =  {1,2,3,9};
+    print(ivec);
+
+    return 0;
+}
 ```
 
