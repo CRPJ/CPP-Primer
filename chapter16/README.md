@@ -764,5 +764,225 @@ Blob<T>::Blob(It b, It e) {
 
 > 编写你自己版本的 shared_ptr 和 unique_ptr。
 
+[shared_ptr](./shared_ptr.h)|[unique_ptr](./unique_ptr.h)
 
+```c++
+#ifndef CPP_PRIMER_SHARED_PTR_H
+#define CPP_PRIMER_SHARED_PTR_H
 
+#include <functional>
+#include "delete.h"
+
+namespace cp5{
+    template<typename T> class SharedPointer;
+
+    template<typename T>
+    void swap(SharedPointer<T>& lhs, SharedPointer<T>& rhs) {
+        using std::swap;
+        swap(lhs.ptr, rhs.ptr);
+        swap(lhs.ref_count, rhs.ref_count);
+        swap(lhs.delter, rhs.deleter);
+    }
+
+    template<typename T> class SharedPointer{
+    public:
+        SharedPointer() : ptr(nullptr), ref_count(new std::size_t (1)), deleter(cp5::Delete{}) {}
+
+        explicit SharedPointer(T* raw_ptr) :
+        ptr(raw_ptr), ref_count(new std::size_t (1)), deleter(cp5::Delete{}) {}
+
+        SharedPointer(SharedPointer const &other) :
+        ptr(other.ptr),  ref_count(other.ref_count), deleter(other.deleter){
+            ++*ref_count;
+        }
+
+        SharedPointer& operator=(SharedPointer const &rhs) {
+            if (this != &rhs) {
+                ++*rhs.ref_count;
+                decrement_and_destroy();
+                ptr = rhs.ptr;
+                ref_count = rhs.ref_count;
+                deleter = rhs.deleter;
+            }
+            return *this;
+        }
+
+        SharedPointer(SharedPointer &&other) noexcept :
+        ptr(other.ptr), ref_count(other.ref_count), deleter(std::move(other.deleter)) {
+            other.ptr = nullptr;
+            other.ref_count = nullptr;
+        }
+
+        SharedPointer& operator=(SharedPointer &&rhs) noexcept {
+            cp5::swap(*this, rhs);
+            rhs.decrement_and_destroy();
+            return *this;
+        }
+
+        explicit operator bool() const {
+            return ptr != nullptr;
+        }
+
+        T& operator* () const {
+            return *ptr;
+        }
+
+        T* operator->() const {
+            return ptr;
+        }
+
+        std::size_t use_count() const {
+            return *ref_count;
+        }
+
+        T* get() const {
+            return ptr;
+        }
+
+        bool unique() const {
+            return 1 == *ref_count;
+        }
+
+        void swap(SharedPointer& rhs) {
+            cp5::swap(*this, rhs);
+        }
+
+        void reset(T* pointer) {
+            if (ptr != pointer) {
+                decrement_and_destroy();
+                ptr = pointer;
+                ref_count = new std::size_t (1);
+            }
+        }
+
+        void reset(T* pointer, const std::function<void(T*)> &d) {
+            reset(pointer);
+            deleter = d;
+        }
+
+        ~SharedPointer() {
+            decrement_and_destroy();
+        }
+
+    private:
+        T* ptr;
+        std::size_t *ref_count;
+        std::function<void(T*)> deleter;
+
+        void decrement_and_destroy() {
+            if (ptr && 0 == --*ref_count) {
+                delete ref_count;
+                deleter(ptr);
+            } else if(!ptr)
+                delete ref_count;
+            ref_count = nullptr;
+            ptr = nullptr;
+        }
+    };
+}
+
+#endif //CPP_PRIMER_SHARED_PTR_H
+
+```
+
+unique_ptr
+
+```c++
+#ifndef CPP_PRIMER_UNIQUE_PTR_H
+#define CPP_PRIMER_UNIQUE_PTR_H
+
+#include "delete.h"
+#include <iostream>
+
+template<typename, typename > class UniquePointer;
+
+template<typename T, typename D>
+void swap(UniquePointer<T, D>& lhs, UniquePointer<T, D>& rhs);
+
+template<typename T, typename D = cp5::Delete> class UniquePointer{
+    friend void swap<T, D>(UniquePointer<T, D>& lhs, UniquePointer<T, D>& rhs);
+
+public:
+    // 禁止拷贝构造和拷贝赋值运算
+    UniquePointer(const UniquePointer&) = delete ;
+    UniquePointer& operator=(const UniquePointer&) = delete ;
+
+    UniquePointer() = default;
+    explicit UniquePointer(T *pointer) : ptr(pointer) {}
+
+    UniquePointer(UniquePointer && other) noexcept : ptr(other.ptr) {
+        other.ptr = nullptr;
+    }
+
+    UniquePointer& operator=(UniquePointer &&rhs) noexcept;
+
+    UniquePointer& operator=(std::nullptr_t n) noexcept ;
+
+    T& operator*() const { return *ptr; }
+    T* operator->() const { return &this->operator*(); }
+    operator bool() const { return ptr!= nullptr; }
+
+    T* get() const noexcept { return ptr; }
+
+    void swap(UniquePointer& rhs) { ::swap(*this, rhs); }
+
+    void reset() noexcept { deleter(ptr); ptr = nullptr; }
+    void reset(T* p) noexcept { deleter(ptr); ptr = p; }
+
+    T* release();
+
+    ~UniquePointer() { deleter(ptr); }
+private:
+    T* ptr = nullptr;
+    D deleter = D();
+};
+
+template<typename T, typename D>
+inline void swap(UniquePointer<T, D>& lhs, UniquePointer<T, D>& rhs) {
+    using std::move;
+    swap(lhs.ptr, rhs.ptr);
+    swap(lhs.deleter, rhs.deleter);
+}
+
+template<typename T, typename D>
+inline UniquePointer<T, D>& UniquePointer<T, D>::operator=(UniquePointer&& rhs) noexcept {
+    if (this->ptr != rhs.ptr) {
+        deleter(ptr);
+        ptr = nullptr;
+        swap(*this, rhs);
+    }
+    return *this;
+}
+
+template<typename T, typename D>
+inline UniquePointer<T, D>& UniquePointer<T, D>::operator=(std::nullptr_t n) noexcept {
+    if (n == nullptr) {
+        deleter(ptr);
+        ptr = nullptr;
+    }
+    return *this;
+}
+
+template<typename T, typename D>
+inline T* UniquePointer<T, D>::release() {
+    T* ret = ptr;
+    ptr = nullptr;
+    return ret;
+}
+
+#endif //CPP_PRIMER_UNIQUE_PTR_H
+```
+
+## 16.29
+
+> 修改你的 Blob 类，用你自己的 shared_ptr 代替标准库中的版本。
+
+## 16.30
+
+> 重新运行你的一些程序，验证你的 shared_ptr 类和修改后的 Blob 类。（注意：实现 weak_ptr 类型超出了本书范围，因此你不能将BlobPtr类与你修改后的Blob一起使用。）
+
+## 16.31
+
+> 如果我们将 DebugDelete 与 unique_ptr 一起使用，解释编译器将删除器处理为内联形式的可能方式。
+
+`shared_ptr`是运行时绑定删除器，而`unique_ptr`则是编译时绑定删除器。`unique_ptr`有两个模板参数，一个是所管理的对象类型，一个是删除器类型。因此，删除器类型是`unique_ptr`类型的一部分，在编译时就可知道，删除器可直接保存在`unique_ptr`对象中。通过这种方式，`unique_ptr`避免了间接调用删除器的运行时开销，而编译器还可以将自定义的删除器，如`DebugDelete`编译为内联形式。
