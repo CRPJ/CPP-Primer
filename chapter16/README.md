@@ -721,3 +721,48 @@ Blob<T>::Blob(It b, It e) {
 }
 ```
 
+## 16.25
+
+> 解释下面这些声明的含义。
+>
+> ```c++
+> extern template class vector<string>;
+> template class vector<Sales_data>;
+> ```
+
+第一个是模板声明，在其他源文件中已经有实例化的模板了，第二个是模板定义，在此源文件中实例化一个类模板。
+
+## 16.26
+
+> 假设 NoDefault 是一个没有默认构造函数的类，我们可以显式实例化 vector<NoDefault>吗？如果不可以，解释为什么。
+
+不可以，如
+
+`std::vector<NODefault> vec(10)`会使用`NoDefault`的默认构造函数，但是它没有默认构造函数。
+
+## 16.27
+
+> 对下面每条带标签的语句，解释发生了什么样的实例化（如果有的话）。如果一个模版被实例化，解释为什么;如果未实例化，解释为什么没有。
+>
+> ```c++
+> template <typename T> class Stack {	};
+> void f1(Stack<char>); 		//(a)
+> class Exercise {
+> 	Stack<double> &rds;		//(b)
+> 	Stack<int> si;			//(c)
+> };
+> int main() {
+> 	Stack<char> *sc;		//(d)
+> 	f1(*sc);				//(e)
+> 	int iObj = sizeof(Stack<string>);	//(f)
+> }
+> ```
+
+(a)、(b)、(c)、(f)都发生了实例化，(d)、(e)没有实例化。
+
+## 16.28
+
+> 编写你自己版本的 shared_ptr 和 unique_ptr。
+
+
+
